@@ -3,9 +3,7 @@
 The setup and safeguards a project should have **before** feature development begins — linting, type checking, tests, git hooks, commit conventions, dependency maintenance, CI, accessibility checks, and agent-facing project guidance — packaged so that projects share one source of truth instead of drifting copies.
 
 > **Status: built, not yet published.**
-> Both presets, both commands, and the drift check are implemented and tested end to end from a packed install. There is no published package yet.
->
-> What v1 ships is the *mechanism*. Most of the policy it carries is still a placeholder — see [What is actually in it](#what-is-actually-in-it).
+> The preset, both commands, and the drift check are implemented and tested end to end from a packed install, against the real configuration of the projects Preflight was extracted from. There is no published package yet.
 
 ## The problem
 
@@ -57,9 +55,9 @@ That turns divergence into a reviewable decision instead of an accident.
 
 ## Scope of v1
 
-Four files, chosen on the principle **ship the agreement, defer the disputes**. v1 centralizes only what the consuming projects already agree on — not because those files are the most valuable, but because they are consensus with nothing preserving it, which makes them what drifts next.
+Three files, chosen on the principle **ship the agreement, defer the disputes**. v1 centralizes only what the consuming projects already agree on — not because those files are the most valuable, but because they are consensus with nothing preserving it, which makes them what drifts next.
 
-A fifth was cut during implementation planning, for the same reason the two dead files above are interesting: it configured a tool that no project had installed. The check that catches that is the whole point, so it would have been a poor thing to ship.
+Two more were cut for the same reason the dead files above are interesting: they configured tools that nothing installed or nothing ran. The check that catches that is the whole point, so they would have been poor things to ship.
 
 Everything genuinely contested — lint rules the projects have settled in opposite directions — is deferred, so the mechanism can earn trust before it is used to settle arguments.
 
@@ -67,18 +65,17 @@ See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives
 
 ## What is actually in it
 
-The four files are configured through two mechanisms, and both mechanisms work. Their *contents* are another matter, and this table is the honest version:
-
-| File | Mechanism | What it currently carries |
+| File | Mechanism | What it carries |
 |---|---|---|
-| `taze.config.ts` | preset | Nothing — an empty, typed options object |
-| `skills-npm.config.ts` | preset | Nothing — an empty, typed options object |
-| `.nvmrc` | CLI-written | `24`, which is real policy |
-| `axe-linter.yml` | CLI-written | A chosen WCAG 2.1 AA rule set, not an extracted one |
+| `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` |
+| `.nvmrc` | CLI-written | `v24` |
+| `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` |
 
-The reason is the same in every row: this is a public repository, the configuration it centralizes lives in private ones, and none of it has been extracted here yet. Shipping invented defaults would make Preflight's first act the thing it exists to prevent — distributing configuration nobody measured. So the presets ship empty rather than plausible.
+Every one of these was extracted from the consuming projects rather than chosen, and both CLI-written templates are byte-identical to what those projects already have. `preflight sync` run against either of them writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
 
-One consequence is worth stating plainly, because it contradicts a claim made above. Adoption is described as effectively a no-op for the existing repos, on the evidence that all four files were byte-identical across them. That holds for `.nvmrc`. It does not yet hold for `axe-linter.yml`, where `preflight sync` would currently write a chosen policy over a real one. [ADR-0005](./docs/adr/0005-shipped-template-content-is-provisional.md) records what would settle it.
+**A fourth file was cut during implementation.** `skills-npm.config.ts` looked like shared policy: byte-identical across both projects, and carrying two settings that differ from the tool's own defaults. Reading it settled the matter — it is the tool's README example verbatim, every line of it, with eight lines of placeholder examples deleted. The two "settings" are the README's values. Nothing in either project runs the tool.
+
+That is the third file cut from this scope on the same test, and the second one cut for looking like consensus when it was inertia. It is also the one that got furthest before anyone opened it: it survived a specification, a ticket, and an architecture decision record, all of which described the file rather than reading it. Preflight exists because configuration drifts when nobody looks; the same habit is what nearly shipped this.
 
 ## License
 

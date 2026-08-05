@@ -22,14 +22,19 @@ describe('preflight sync', () => {
   })
 
   it('shows a diff of every pending change before writing anything', async () => {
-    const root = await project({ '.nvmrc': '22\n' })
+    const root = await project({ '.nvmrc': 'nonsense\n' })
 
     const { stdout } = await preflight(['sync', '--yes'], root)
 
     expect(stdout).toContain('.nvmrc')
     expect(stdout).toContain('axe-linter.yml')
-    expect(stdout).toContain('-22')
-    expect(stdout).toContain('+24')
+
+    // Derived from the template, not written down here — the diff has to show
+    // what Preflight would actually write, and a hardcoded expectation would
+    // only be asserting that someone remembered to update this test too.
+    expect(stdout).toContain('-nonsense')
+    for (const line of (await readTemplate('.nvmrc')).trim().split('\n'))
+      expect(stdout).toContain(`+${line}`)
   })
 
   it('writes nothing without confirmation', async () => {

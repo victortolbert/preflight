@@ -31,7 +31,6 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./taze": "./dist/presets/taze.mjs",
-    "./skills-npm": "./dist/presets/skills-npm.mjs",
     "./package.json": "./package.json"
   },
   "files": [
@@ -51,7 +50,6 @@
     "prepack": "pnpm run build"
   },
   "peerDependencies": {
-    "skills-npm": ">=1",
     "taze": ">=19"
   },
   "devDependencies": {
@@ -60,7 +58,6 @@
     "bumpp": "^12.1.1",
     "es-module-lexer": "^2.3.1",
     "publint": "^0.3.14",
-    "skills-npm": "1.2.0",
     "taze": "19.17.1",
     "tsdown": "^0.22.14",
     "typescript": "^5.9.3",

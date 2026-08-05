@@ -8,7 +8,6 @@ export default defineConfig({
     'index': 'src/index.ts',
     'cli': 'src/cli.ts',
     'presets/taze': 'src/presets/taze.ts',
-    'presets/skills-npm': 'src/presets/skills-npm.ts',
   },
   format: ['esm'],
   platform: 'node',

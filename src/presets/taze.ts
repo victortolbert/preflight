@@ -24,16 +24,19 @@ import type { CheckOptions } from 'taze'
  * })
  * ```
  *
- * The body is deliberately empty of policy. SPEC §2 takes only what the
- * consuming repos already agree on, and their settings have not been extracted
- * into this public repo yet; inventing defaults here would ship policy that no
- * measurement supports. `exclude` is present and empty because it is the key
- * SPEC §4's composition example builds on, so consumers can write that line
- * against v1 and have it keep working when real policy lands.
+ * Extracted from the consuming repos, where this was byte-identical, and it is
+ * the one v1 file whose contents were a genuine choice rather than a tool's
+ * README example left where it landed. taze's own example excludes `webpack`;
+ * this does not resemble it.
  */
 const preflightTaze = {
-  /** Dependencies Preflight asks taze to leave alone. */
-  exclude: [] as string[],
+  /**
+   * Dependencies Preflight asks taze to leave alone.
+   *
+   * The FontAwesome packages are versioned behind a licensed registry, so an
+   * unattended bump proposes versions the project cannot resolve.
+   */
+  exclude: ['@fortawesome/*'],
 } satisfies Partial<CheckOptions>
 
 export default preflightTaze

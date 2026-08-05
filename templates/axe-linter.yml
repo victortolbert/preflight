@@ -1,9 +1,9 @@
-# Accessibility rules enforced by axe Linter.
-#
-# WCAG 2.1 Level AA — the level most accessibility policy and procurement
-# requirements are written against.
-tags:
-  - wcag2a
-  - wcag2aa
-  - wcag21a
-  - wcag21aa
+rules:
+  empty-heading: false # Disable this rule
+# exclude:
+#   - 'tests/**/*.html' # Skip files
+# global-components:
+#   AxeButton: button # Lint <AxeButton> as though it was a <button>
+# global-libraries:
+#   - 'react-native' # Run React Native rules
+#   - '@mui/material' # Enable linting MaterialUI components
