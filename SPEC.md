@@ -237,12 +237,14 @@ Accepted for v1, recorded so they are not rediscovered as surprises.
 
 1. **The accessibility gap.** The consuming repos disagree substantially on accessibility lint enforcement — the only divergence found with user-facing consequence.
 2. **Revive commit linting.** Conventional commits are demonstrably in use, enforced by nothing. Needs the dependency and a `commit-msg` hook, not just a config file.
-3. **CI workflows and action SHA-pinning.** Also closes residual risk #1.
+3. **CI workflows and action SHA-pinning.** Also closes residual risk #1. **Blocked, not merely deferred** — measured after v1 shipped and found to have no agreement to centralize: the application repo pins 11 of 19 action references and floats 8, with three actions appearing both ways inside it, while the template pins none of 7. The workflow files also cannot be shared, since one carries a 52-line `e2e` job the other has no use for. See [ADR-0006](./docs/adr/0006-ci-workflows-are-not-yet-shareable.md) for what would change the answer.
 4. **eslint** — requires settling style questions the repos have answered in opposite directions.
 5. **Deploy security headers**, reclaimed host-independently.
 6. **markdownlint** — a substantial set of rules in dispute.
 7. **Editor config** — needs *writing*, not extracting.
 8. **tsconfig, vitest, playwright** — and with them, the version-pinning and catalog questions return with real weight, since these are tools whose version differences change results silently rather than loudly.
+
+**This ordering was reasoned, not measured.** Item 3 was ranked from an audit that characterized its drift correctly but never counted it; counting reversed the conclusion (ADR-0006). The remaining items were ordered by the same method, so each should be re-measured before being taken up rather than promoted on the strength of its position here.
 
 Added during implementation planning:
 
