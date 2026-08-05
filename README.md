@@ -2,8 +2,10 @@
 
 The setup and safeguards a project should have **before** feature development begins — linting, type checking, tests, git hooks, commit conventions, dependency maintenance, CI, accessibility checks, and agent-facing project guidance — packaged so that projects share one source of truth instead of drifting copies.
 
-> **Status: specified, not yet implemented.**
-> [`SPEC.md`](./SPEC.md) is decision-complete and ready to build against. There is no published package yet.
+> **Status: built, not yet published.**
+> Both presets, both commands, and the drift check are implemented and tested end to end from a packed install. There is no published package yet.
+>
+> What v1 ships is the *mechanism*. Most of the policy it carries is still a placeholder — see [What is actually in it](#what-is-actually-in-it).
 
 ## The problem
 
@@ -62,6 +64,21 @@ A fifth was cut during implementation planning, for the same reason the two dead
 Everything genuinely contested — lint rules the projects have settled in opposite directions — is deferred, so the mechanism can earn trust before it is used to settle arguments.
 
 See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives and why, the residual risks, and the v2 backlog.
+
+## What is actually in it
+
+The four files are configured through two mechanisms, and both mechanisms work. Their *contents* are another matter, and this table is the honest version:
+
+| File | Mechanism | What it currently carries |
+|---|---|---|
+| `taze.config.ts` | preset | Nothing — an empty, typed options object |
+| `skills-npm.config.ts` | preset | Nothing — an empty, typed options object |
+| `.nvmrc` | CLI-written | `24`, which is real policy |
+| `axe-linter.yml` | CLI-written | A chosen WCAG 2.1 AA rule set, not an extracted one |
+
+The reason is the same in every row: this is a public repository, the configuration it centralizes lives in private ones, and none of it has been extracted here yet. Shipping invented defaults would make Preflight's first act the thing it exists to prevent — distributing configuration nobody measured. So the presets ship empty rather than plausible.
+
+One consequence is worth stating plainly, because it contradicts a claim made above. Adoption is described as effectively a no-op for the existing repos, on the evidence that all four files were byte-identical across them. That holds for `.nvmrc`. It does not yet hold for `axe-linter.yml`, where `preflight sync` would currently write a chosen policy over a real one. [ADR-0005](./docs/adr/0005-shipped-template-content-is-provisional.md) records what would settle it.
 
 ## License
 

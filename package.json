@@ -5,7 +5,17 @@
   "private": false,
   "packageManager": "pnpm@11.20.0",
   "description": "The foundational project-setup layer — the safeguards a project should have before feature work begins.",
+  "author": "Victor Tolbert",
   "license": "MIT",
+  "keywords": [
+    "config",
+    "configuration",
+    "drift",
+    "preset",
+    "scaffold",
+    "taze",
+    "skills-npm"
+  ],
   "homepage": "https://github.com/victortolbert/preflight#readme",
   "repository": {
     "type": "git",
