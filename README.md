@@ -23,15 +23,22 @@ Preflight is an **installed dependency**, not a scaffold — the only arrangemen
 
 It uses two mechanisms, split along a simple rule: **if a tool has a native composition point, ship a preset; otherwise write the file and track it.**
 
-```jsonc
-// consumed by reference — cannot drift
-{ "extends": ["@victortolbert/preflight/taze"] }
+```ts
+// consumed by reference — policy lives in the package
+export { default } from '@victortolbert/preflight/taze'
 ```
 
 ```bash
 # written into the repo, hashed in preflight-lock.json
 preflight sync     # write managed files, diff first
 preflight check    # fail CI on unexplained drift
+```
+
+`preflight check` is the enforcement point, and CI is the only gate that sees every change. v1 does not ship a workflow — you add the step:
+
+```yaml
+- name: Check for config drift
+  run: pnpm exec preflight check
 ```
 
 Divergence is often legitimate — database config *should* differ per project — so it is declared rather than detected:
@@ -46,7 +53,9 @@ That turns divergence into a reviewable decision instead of an accident.
 
 ## Scope of v1
 
-Five files, chosen on the principle **ship the agreement, defer the disputes**. v1 centralizes only what the consuming projects already agree on — not because those files are the most valuable, but because they are consensus with nothing preserving it, which makes them what drifts next.
+Four files, chosen on the principle **ship the agreement, defer the disputes**. v1 centralizes only what the consuming projects already agree on — not because those files are the most valuable, but because they are consensus with nothing preserving it, which makes them what drifts next.
+
+A fifth was cut during implementation planning, for the same reason the two dead files above are interesting: it configured a tool that no project had installed. The check that catches that is the whole point, so it would have been a poor thing to ship.
 
 Everything genuinely contested — lint rules the projects have settled in opposite directions — is deferred, so the mechanism can earn trust before it is used to settle arguments.
 

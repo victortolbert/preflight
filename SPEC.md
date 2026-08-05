@@ -25,7 +25,7 @@ Preflight exists to give that shared surface a source of truth.
 
 ## 2. What v1 ships
 
-**Five files.** Every one configures a tool that is actually installed and running.
+**Four files.** Every one configures a tool that is actually installed and running — verified by measurement rather than assumed.
 
 | File | Mechanism | Consumed as |
 |---|---|---|
@@ -33,7 +33,8 @@ Preflight exists to give that shared surface a source of truth.
 | `skills-npm.config.ts` | preset | `@victortolbert/preflight/skills-npm` |
 | `.nvmrc` | CLI-written | `preflight sync` |
 | `axe-linter.yml` | CLI-written | `preflight sync` |
-| `skills.json` | CLI-written | `preflight sync` |
+
+A fifth file, `skills.json`, was cut after measurement: it configures `skillman`, which appears in neither consuming repo's dependencies or lockfile. See §7 and [ADR-0003](./docs/adr/0003-drop-skills-json-as-dead-config.md).
 
 ### The principle: ship the agreement, defer the disputes
 
@@ -41,7 +42,12 @@ v1 takes only what the consuming repos already agree on. Agreed files are not th
 
 Deferring the disputes is not avoidance. Adjudicating lint rules that two repos have settled in *opposite* directions is real work that will make one repo worse before it makes it better. Doing that *through a mechanism nobody trusts yet* compounds two risks better taken one at a time.
 
-**A dividend of this choice:** adoption is a **no-op** for the existing repos. They are byte-identical on all five files, so adopting v1 changes nothing and surfaces zero violations.
+**A dividend of this choice:** adoption is effectively a **no-op** for the existing repos. All four files were confirmed byte-identical across both consumers, so adoption changes no effective configuration and surfaces zero violations.
+
+Two honest caveats on that claim:
+
+- Adopting a **preset** always rewrites the consumer's config file — from inline options to an import. The *bytes* change; the effective configuration does not.
+- The `skills-npm` preset drops the `include` / `exclude` keys the consuming repos carry, because those hold the tool's own README placeholders (`@some/package`, and the same two entries listed under both keys). Removing them is a configuration change in principle. It is unobservable today, since no script, CI step, or git hook in either repo invokes `skills-npm`.
 
 ---
 
@@ -52,11 +58,14 @@ Deferring the disputes is not avoidance. Adjudicating lint rules that two repos 
   "name": "@victortolbert/preflight",
   "version": "0.1.0",
   "private": false,
+  "type": "module",
   "publishConfig": { "access": "public" },   // REQUIRED — scoped packages default to restricted
-  "bin": { "preflight": "./dist/cli.js" },
+  "bin": { "preflight": "./dist/cli.mjs" },
   "exports": {
-    "./taze": "./dist/presets/taze.js",
-    "./skills-npm": "./dist/presets/skills-npm.js"
+    ".": "./dist/index.mjs",                 // definePreflightConfig
+    "./taze": "./dist/presets/taze.mjs",
+    "./skills-npm": "./dist/presets/skills-npm.mjs",
+    "./package.json": "./package.json"
   },
   "peerDependencies": {
     "taze": ">=19",
@@ -70,20 +79,48 @@ Deferring the disputes is not avoidance. Adjudicating lint rules that two repos 
 
 **Subpaths are tool-named and framework-silent** — `/taze`, never `/nuxt/taze`. Every v1 file is framework-independent, and namespacing them under a framework would both mislead and misname the package for the plain-JavaScript projects that are the likeliest second consumer.
 
+**The root export exists to type `preflight.config.ts`.** `definePreflightConfig` (§6) needs an address, and both peer dependencies expose their `defineConfig` from the package root — so `import { definePreflightConfig } from '@victortolbert/preflight'` is the line these repos already write. §3's tool-named rule was about avoiding *framework* namespacing; it was never an argument against a root.
+
+**ESM-only, `.mjs` output.** Both consuming repos and both peer dependencies are `type: module`, the config files are TypeScript, and the floor is Node 24. A CJS build would have no consumer.
+
+**The exports map is hand-written, not generated.** `publint` fails CI on any path that does not resolve, so the map cannot silently disagree with what was built — and `package.json` stays a reviewable source file rather than a build output. See §12.
+
 ---
 
 ## 4. The two mechanisms
 
 **Assignment rule — *if the tool has a native composition point, it is a preset; otherwise the CLI writes it.***
 
-Neither mechanism is novel to the consuming codebases, which is the reason to choose them over a third invention: config files there already read `extends: [...]` from published presets, and a file-distributing CLI (`skills-npm`) already writes managed files into those repos, complete with `.gitignore` handling, dry-run, and confirmation prompts.
+Neither mechanism is novel to the consuming codebases, which is the reason to choose them over a third invention: config files there are already `defineConfig({ … })` modules importing from a published package, and a file-distributing CLI is already a dependency in both repos — `skills-npm` exposes exactly the surface Preflight's CLI needs, including `.gitignore` handling, dry-run, and confirmation prompts.
 
-**Presets cannot drift.** They are consumed by reference, so their policy lives in the package. Only the three CLI-written files are real drift surface.
+> **Correction.** Earlier drafts described preset consumption as `extends: [...]`. Neither `taze` nor `skills-npm` has an `extends` key; both take a plain options object. The mechanism is import-and-compose. The conclusion is unchanged — the composition point is native either way — but the shape below is what actually gets written.
+
+### Preset shape
+
+A preset is a **typed options object**, not a finished `defineConfig()` result:
+
+```ts
+// consumer with no local policy
+export { default } from '@victortolbert/preflight/taze'
+
+// consumer with a local addition, declared at the point of divergence
+import { defineConfig } from 'taze'
+import preflightTaze from '@victortolbert/preflight/taze'
+
+export default defineConfig({
+  ...preflightTaze,
+  exclude: [...preflightTaze.exclude, '@internal/*'],
+})
+```
+
+Exporting a finished `defineConfig()` result would be more inert, but the only way to diverge from it is to abandon the preset outright — which is residual risk #2 (§9), one level deeper and just as undetectable. §6 argues that a mechanism which cannot express legitimate divergence will be worked around; the CLI-written files get `unmanaged` as their escape hatch, and presets get composition as theirs.
+
+**Presets are low drift surface, not zero.** They are consumed by reference, so their policy lives in the package. A consumer can still override a spread key, and nothing detects that — the same class of gap as residual risk #2. Only the two CLI-written files are drift surface that `preflight check` actually sees.
 
 ### Rejected
 
 - **Nuxt Layers** — framework-native, and the current consumers are Nuxt. But neither repo uses `extends` in `nuxt.config.ts`, and that config is dominated by project-specific workarounds. The layer would carry almost none of the shared surface and still miss editor config, CI, and git hooks.
-- **A single CLI owning everything** — discards the ecosystem's own composition points, turning a one-line `extends` into a generated file that then needs its own drift detection.
+- **A single CLI owning everything** — discards the ecosystem's own composition points, turning a one-line import into a generated file that then needs its own drift detection.
 - **Copy-once scaffolding** — this is the mechanism that produced the drift in the first place.
 
 ---
@@ -144,6 +181,7 @@ CI is the only gate that cannot be skipped and that sees every change.
 | Excluded | Why |
 |---|---|
 | Commit-lint and style-lint configuration | **Dead config** — neither tool is installed in either consuming repo (see §8) |
+| `skills.json` | **Dead config**, found by measurement during implementation planning. It is owned by `skillman`, which is in neither repo's `package.json` nor either lockfile. The two skills tools that *are* installed — `skilld` and `skills-npm` — contain zero references to the file. Same test as the row above, applied consistently. See [ADR-0003](./docs/adr/0003-drop-skills-json-as-dead-config.md) |
 | Ambient TypeScript declarations | Declare *application* domain types. Byte-identical only because of the original copy |
 | Content-collection config | A four-line shim importing project-local schemas |
 | `LICENSE` | Legal boilerplate, not a safeguard |
@@ -188,9 +226,9 @@ Findings that justify the decisions above, from an audit of the shared surface.
 Accepted for v1, recorded so they are not rediscovered as surprises.
 
 1. **v1 requires a CI step it does not ship.** CI workflows are deferred, so each consumer hand-adds `preflight check` — and that step can be deleted, silently disabling enforcement. The strongest argument for CI leading v2.
-2. **Preset abandonment is undetectable.** Replace an `extends` with inline config and nothing notices; the dependency is still installed and the lockfile still valid.
+2. **Preset abandonment is undetectable.** Replace a preset import with inline config and nothing notices; the dependency is still installed and the lockfile still valid. Because presets are spreadable options objects (§4), the weaker form is undetectable too: a consumer can override an individual key and nothing reports it.
 3. **`preflight.config.ts` is unmanaged by construction.** Nothing prevents a repo opting out of everything and passing. The check is an honesty aid, not a control.
-4. **v1 is small.** Five files, two configured tools. It proves the mechanism honestly; whether that is a satisfying debut is a judgement call, worth revisiting once the mechanism lands.
+4. **v1 is small.** Four files, two configured tools — one preset each, two CLI-written. It proves the mechanism honestly; whether that is a satisfying debut is a judgement call, worth revisiting once the mechanism lands. v1 has now shrunk three times, every time on measurement rather than nerve.
 
 ---
 
@@ -205,12 +243,48 @@ Accepted for v1, recorded so they are not rediscovered as surprises.
 7. **Editor config** — needs *writing*, not extracting.
 8. **tsconfig, vitest, playwright** — and with them, the version-pinning and catalog questions return with real weight, since these are tools whose version differences change results silently rather than loudly.
 
+Added during implementation planning:
+
+9. **A skills manifest tool.** `skills.json` was cut from v1 as dead config (§7). Reviving it is the same shape of problem as item 2 — it needs a dependency and something that runs it, not just a config file.
+10. **Make CI read `.nvmrc`.** Both consuming repos hardcode `node-version: 24` in their workflows and reference `.nvmrc` nowhere, so v1 will manage a file that nothing enforces. Folds naturally into item 3.
+
 ---
 
 ## 11. Open beyond v1
 
 Deliberately never scoped by the planning effort, and likely to arise early in implementation:
 
-- **How Preflight proves it works** — whether the layer carries its own tests or conformance checks, and what "this repo is Preflight-compliant" should assert.
+- ~~**How Preflight proves it works.**~~ **Resolved** — see §12. It was two questions wearing one name. The self-test half is settled there; the other half turned out to be a non-question: there is no notion of "Preflight-compliant" beyond what `preflight check` already asserts. See [ADR-0002](./docs/adr/0002-compliance-is-exactly-preflight-check.md).
 - **Whether the source template survives** — rebased onto Preflight, or retired.
 - **Migration for partially-adopted repos** — several projects carry a subset of the tooling.
+
+---
+
+## 12. Build, test, and release
+
+Settled during implementation planning. Recorded here because it shapes the first tickets; the reasoning is in [ADR-0001](./docs/adr/0001-build-and-release-toolchain.md).
+
+### Build — `tsdown`
+
+Both peer dependencies are built with it (`taze`: `"build": "tsdown"`; `skills-npm`: the same), and they are the two published packages structurally closest to Preflight — CLI binary, `defineConfig` export, config-file consumption. This is §4's "nothing novel here" argument applied to the toolchain: choosing `unbuild` or `tsup` would mean diverging from Preflight's own peer dependencies for no measured reason.
+
+Four entries, matching §3's exports map one-to-one: `index`, `cli`, `presets/taze`, `presets/skills-npm`.
+
+### Test — two layers, plus packaging
+
+- **Unit** — pure logic: hashing, diffing, and §6's three-state lock table.
+- **Integration** — `sync` and `check` run against real temporary directories, importing source. Nearly all of Preflight's behaviour is filesystem side-effects and exit codes; a mocked-`fs` suite would verify the mocks.
+- **Packaging** — `publint` and `@arethetypeswrong/cli` in CI.
+
+That third layer is not incidental. This is the first package published from these repos, and the characteristic first-publish failure is not a logic bug — it is a missing `files` entry, a subpath that resolves locally and 404s from the registry, or an absent `.d.ts`. Unit and integration tests catch none of those. Running the packaging checks is cheaper than a pack-and-install test suite and covers the same class.
+
+### Release
+
+1. Publish `0.1.0` by hand, to create the package and exercise the path once.
+2. Then wire a tag-triggered GitHub Actions workflow using **npm trusted publishing (OIDC)** — no long-lived credential stored on a public repo, and provenance attestation comes free. `bumpp` for the version-and-tag step, as both peer dependencies use.
+
+The manual step comes first because npm generally requires a package to exist before a trusted publisher can be configured against it. Verify before relying on it.
+
+`publishConfig: { access: "public" }` is mandatory (§3). Scoped packages default to restricted, and omitting it fails the first publish.
+
+**This is not the CI that §9.1 defers.** That risk is about the `preflight check` step *consumers* must add. Preflight's own release pipeline is a different thing, and v1 cannot ship without one.
