@@ -1,0 +1,105 @@
+# Tag-triggered publish via npm trusted publishing (OIDC).
+#
+# No `NPM_TOKEN` anywhere. This repository is public, and ADR-0001 rejected
+# storing a long-lived publish credential on it; OIDC also brings provenance
+# attestation, which npm generates automatically for a trusted-publisher release
+# with no `--provenance` flag.
+#
+# Cutting a release is `pnpm run release` locally: `bumpp` bumps the version,
+# commits, tags `v<version>`, and pushes. The push of the tag is what starts
+# this. One-time setup on npmjs.com is in `docs/releasing.md`.
+#
+# Actions are SHA-pinned, for the reason `ci.yml` gives.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The whole of the credential story: this is what lets the runner mint an
+      # OIDC token npm will trust.
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          # Deliberately no `registry-url`. npm's own example workflow sets it,
+          # but with no `NODE_AUTH_TOKEN` in the environment setup-node writes a
+          # literal `_authToken=` line into `.npmrc`, npm reads that as "auth is
+          # already configured", and the OIDC exchange never happens — the
+          # publish then fails ENEEDAUTH with trusted publishing correctly set up
+          # (actions/setup-node#1551). Omitting it leaves npm on its default
+          # registry, which is the one we want anyway.
+          #
+          # No cache either: a release build should not depend on the state of
+          # cache infrastructure.
+
+      - name: Require an npm new enough for trusted publishing
+        # Trusted publishing needs npm >= 11.5.1. `.nvmrc` says `24`, which
+        # resolves to the newest 24.x and so satisfies this today — but 24.0.0
+        # through 24.4.1 shipped npm 11.3.0/11.4.2, so pinning `.nvmrc` to a
+        # patch would quietly reintroduce the problem.
+        #
+        # This fails rather than running `npm install -g npm@latest`: an unpinned
+        # global install in the one job holding `id-token: write` is exactly the
+        # supply-chain surface ADR-0001 chose OIDC to avoid.
+        run: |
+          if [ "$(printf '11.5.1\n%s\n' "$(npm --version)" | sort -V | head -1)" != "11.5.1" ]; then
+            echo "::error::npm $(npm --version) is below 11.5.1, which trusted publishing requires. Raise the Node version in .nvmrc."
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Refuse to publish a tag that disagrees with package.json
+        # `bumpp` derives the tag from the version, so these agree on any release
+        # it cut. A hand-pushed tag is the case this catches, and it would
+        # otherwise publish a version nobody asked for — unrepublishable, since
+        # npm never reissues a version number.
+        run: |
+          TAGGED="${GITHUB_REF_NAME#v}"
+          PACKAGED="$(node -p "require('./package.json').version")"
+          if [ "$TAGGED" != "$PACKAGED" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PACKAGED."
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Build
+        run: pnpm run build
+
+      # Before publishing, not after. SPEC §12: the characteristic first-publish
+      # failure is a missing `files` entry or a subpath that 404s from the
+      # registry, and a version number cannot be taken back once used.
+      - name: Packaging checks
+        run: pnpm run check:packaging
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Publish
+        # No `NODE_AUTH_TOKEN`. The npm CLI mints an OIDC token itself from the
+        # `id-token: write` permission above, and `publishConfig.access` in
+        # package.json makes this public — scoped packages default to restricted
+        # (SPEC §3).
+        #
+        # `--provenance` is passed explicitly even though npm documents it as
+        # automatic under trusted publishing. The ticket asks for an attestation,
+        # and asking for one turns that from something we assume into something
+        # the publish would fail without.
+        run: npm publish --provenance

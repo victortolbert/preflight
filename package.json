@@ -35,8 +35,8 @@
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:types": "vitest run --typecheck.only",
     "check:packaging": "publint --strict && attw --pack . --profile esm-only",
+    "release": "bumpp",
     "pretest": "pnpm run build",
     "prepack": "pnpm run build"
   },
@@ -47,6 +47,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
     "@types/node": "^24.10.1",
+    "bumpp": "^12.1.1",
     "es-module-lexer": "^2.3.1",
     "publint": "^0.3.14",
     "skills-npm": "1.2.0",
