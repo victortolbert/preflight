@@ -6,6 +6,7 @@ export default defineConfig({
   // map are kept in step by hand — `publint` fails CI if they ever disagree.
   entry: {
     'index': 'src/index.ts',
+    'cli': 'src/cli.ts',
     'presets/taze': 'src/presets/taze.ts',
     'presets/skills-npm': 'src/presets/skills-npm.ts',
   },

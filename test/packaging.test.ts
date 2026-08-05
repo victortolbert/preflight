@@ -1,11 +1,16 @@
+import { execFile } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 import { init, parse } from 'es-module-lexer'
 import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
 import preflightSkillsNpm from '../src/presets/skills-npm'
 import preflightTaze from '../src/presets/taze'
+import { MANAGED_FILES } from '../src/templates'
+
+const run = promisify(execFile)
 
 const repoRoot = new URL('../', import.meta.url)
 const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
@@ -46,6 +51,23 @@ describe('packaging', () => {
     const accounted = [...Object.keys(presetSources), ...nonPresetEntries]
 
     expect(modules.map(([subpath]) => subpath).sort()).toEqual(accounted.sort())
+  })
+
+  it('ships every template in the published tarball', async () => {
+    // The one place a dotfile is at risk. `.nvmrc` resolves locally whether or
+    // not it packs, so nothing else here would notice it going missing — and a
+    // template absent from the tarball is SPEC §12's characteristic first-publish
+    // failure, arriving as a crash in `preflight sync` rather than at build time.
+    const { stdout } = await run(
+      'npm',
+      ['pack', '--dry-run', '--json', '--ignore-scripts'],
+      { cwd: fileURLToPath(repoRoot) },
+    )
+
+    const packed: string[] = JSON.parse(stdout)[0].files.map((f: { path: string }) => f.path)
+
+    for (const file of MANAGED_FILES)
+      expect(packed).toContain(`templates/${file}`)
   })
 
   it('exposes `definePreflightConfig` from the built root entry', async () => {

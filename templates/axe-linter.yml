@@ -1,0 +1,9 @@
+# Accessibility rules enforced by axe Linter.
+#
+# WCAG 2.1 Level AA — the level most accessibility policy and procurement
+# requirements are written against.
+tags:
+  - wcag2a
+  - wcag2aa
+  - wcag21a
+  - wcag21aa
