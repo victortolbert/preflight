@@ -1,0 +1,52 @@
+{
+  "name": "@victortolbert/preflight",
+  "type": "module",
+  "version": "0.1.0",
+  "private": false,
+  "packageManager": "pnpm@11.20.0",
+  "description": "The foundational project-setup layer — the safeguards a project should have before feature work begins.",
+  "license": "MIT",
+  "homepage": "https://github.com/victortolbert/preflight#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victortolbert/preflight.git"
+  },
+  "bugs": "https://github.com/victortolbert/preflight/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./taze": "./dist/presets/taze.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:types": "vitest run --typecheck.only",
+    "check:packaging": "publint --strict && attw --pack . --profile esm-only",
+    "pretest": "pnpm run build",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "skills-npm": ">=1",
+    "taze": ">=19"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@types/node": "^24.10.1",
+    "es-module-lexer": "^2.3.1",
+    "publint": "^0.3.14",
+    "taze": "19.17.1",
+    "tsdown": "^0.22.14",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

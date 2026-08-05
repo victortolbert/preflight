@@ -1,0 +1,51 @@
+# Preflight's own CI. This is not the consumer-side `preflight check` step that
+# SPEC §9.1 records as residual risk #1 — that one each consuming repo hand-adds.
+#
+# Actions are SHA-pinned. SPEC §8 found a floating tag still running a deprecated
+# Node version in the repo Preflight was extracted from; the same hazard applies
+# here, and the tag each SHA came from is in the trailing comment.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      # Issue #1 asks for build → packaging checks → tests, which inverts the
+      # order SPEC §12 lists the layers in. Deliberate: packaging is the layer
+      # unit and integration tests cannot substitute for — a missing `files`
+      # entry, a subpath that resolves locally and 404s from the registry, an
+      # absent declaration file — so it should fail first and fail loudly.
+      - name: Build
+        run: pnpm run build
+
+      - name: Packaging checks
+        run: pnpm run check:packaging
+
+      - name: Test
+        run: pnpm run test
