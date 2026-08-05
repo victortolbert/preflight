@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      skills-npm:
-        specifier: '>=1'
-        version: 1.2.0
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.2
@@ -24,6 +20,9 @@ importers:
       publint:
         specifier: ^0.3.14
         version: 0.3.23
+      skills-npm:
+        specifier: 1.2.0
+        version: 1.2.0
       taze:
         specifier: 19.17.1
         version: 19.17.1

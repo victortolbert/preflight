@@ -6,6 +6,7 @@ export default defineConfig({
   // map are kept in step by hand — `publint` fails CI if they ever disagree.
   entry: {
     'presets/taze': 'src/presets/taze.ts',
+    'presets/skills-npm': 'src/presets/skills-npm.ts',
   },
   format: ['esm'],
   platform: 'node',

@@ -4,10 +4,17 @@ import { fileURLToPath } from 'node:url'
 import { init, parse } from 'es-module-lexer'
 import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
+import preflightSkillsNpm from '../src/presets/skills-npm'
 import preflightTaze from '../src/presets/taze'
 
 const repoRoot = new URL('../', import.meta.url)
 const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
+
+/** The source module each preset subpath should have been built from. */
+const presetSources: Record<string, object> = {
+  './taze': preflightTaze,
+  './skills-npm': preflightSkillsNpm,
+}
 
 /**
  * SPEC §12: the characteristic first-publish failure is not a logic bug — it is
@@ -17,35 +24,39 @@ const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
  */
 describe('packaging', () => {
   const subpaths = Object.entries(pkg.exports)
+  const modules = subpaths.filter(([, target]) => target.endsWith('.mjs'))
 
   it.each(subpaths)('exports map entry %s points at a file that exists', (_subpath, target) => {
     expect(existsSync(resolve(target))).toBe(true)
   })
 
   it('ships a declaration file alongside every built entry', () => {
-    const built = subpaths
-      .map(([, target]) => target)
-      .filter(target => target.endsWith('.mjs'))
-
-    expect(built.length).toBeGreaterThan(0)
-    for (const target of built)
+    expect(modules.length).toBeGreaterThan(0)
+    for (const [, target] of modules)
       expect(existsSync(resolve(target.replace(/\.mjs$/, '.d.mts')))).toBe(true)
   })
 
-  it('builds the taze preset to the value the source exports', async () => {
-    const built = await import(resolve('./dist/presets/taze.mjs'))
-
-    expect(built.default).toEqual(preflightTaze)
+  it('covers every built entry below', () => {
+    // Keeps the checks that follow honest as later tickets add subpaths: a new
+    // entry in the exports map fails here until it is given a source module,
+    // rather than silently going unchecked.
+    expect(modules.map(([subpath]) => subpath).sort()).toEqual(Object.keys(presetSources).sort())
   })
 
-  it('does not pull a peer dependency into the preset at runtime', async () => {
-    // Calling taze's `defineConfig` would make the peer dep a load-time import
-    // of every consumer's config file. ADR-0004 says don't, and this is what
-    // "don't" looks like in the emitted module.
-    const built = await readFile(resolve('./dist/presets/taze.mjs'), 'utf8')
+  it.each(modules)('builds %s to the value its source exports', async (subpath, target) => {
+    const built = await import(resolve(target))
+
+    expect(built.default).toEqual(presetSources[subpath])
+  })
+
+  it.each(modules)('%s pulls in no peer dependency at runtime', async (_subpath, target) => {
+    // Calling the tool's own `defineConfig` would make the peer dep a load-time
+    // import of every consumer's config file. ADR-0004 says don't, and this is
+    // what "don't" looks like in the emitted module.
+    const code = await readFile(resolve(target), 'utf8')
 
     await init
-    const [imports] = parse(built)
+    const [imports] = parse(code)
 
     expect(imports.map(specifier => specifier.n)).toEqual([])
   })
