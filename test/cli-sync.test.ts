@@ -1,31 +1,10 @@
-import { execFile } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { promisify } from 'node:util'
 import { describe, expect, it } from 'vitest'
 import { LOCK_FILE } from '../src/lock'
 import { MANAGED_FILES, readTemplate } from '../src/templates'
+import { preflight } from './support/cli'
 import { project } from './support/project'
-
-const run = promisify(execFile)
-const cli = fileURLToPath(new URL('../dist/cli.mjs', import.meta.url))
-
-/**
- * Runs the built CLI the way a project would. SPEC §12: nearly all of
- * Preflight's behaviour is filesystem side-effects and exit codes, so these
- * drive the real binary rather than importing its internals.
- */
-async function preflight(args: string[], cwd: string) {
-  try {
-    const { stdout, stderr } = await run(process.execPath, [cli, ...args], { cwd })
-    return { code: 0, stdout, stderr }
-  }
-  catch (error) {
-    const failure = error as { code?: number, stdout?: string, stderr?: string }
-    return { code: failure.code ?? 1, stdout: failure.stdout ?? '', stderr: failure.stderr ?? '' }
-  }
-}
 
 describe('preflight sync', () => {
   it('writes every managed file and a lock recording each one', async () => {

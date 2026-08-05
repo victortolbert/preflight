@@ -1,5 +1,6 @@
 import type { ManagedFile } from './index'
 import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
@@ -25,4 +26,20 @@ const templates = new URL('../templates/', import.meta.url)
 /** The contents Preflight would write for `file`. */
 export async function readTemplate(file: ManagedFile): Promise<string> {
   return readFile(fileURLToPath(new URL(file, templates)), 'utf8')
+}
+
+/**
+ * The contents a project currently has for `file`, or `undefined` if it has none.
+ *
+ * The counterpart to {@link readTemplate}: what the project has, against what
+ * Preflight ships. Absence is a state both `sync` and `check` have an answer
+ * for, so it is returned rather than thrown.
+ */
+export async function readProjectFile(projectRoot: string, file: ManagedFile): Promise<string | undefined> {
+  try {
+    return await readFile(join(projectRoot, file), 'utf8')
+  }
+  catch {
+    return undefined
+  }
 }

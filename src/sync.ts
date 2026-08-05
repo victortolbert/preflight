@@ -1,10 +1,10 @@
 import type { ManagedFile } from './index'
 import type { PreflightLock } from './lock'
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { loadPreflightConfig } from './config'
 import { hashContents, LOCK_VERSION, writeLock } from './lock'
-import { MANAGED_FILES, readTemplate } from './templates'
+import { MANAGED_FILES, readProjectFile, readTemplate } from './templates'
 
 /** What a sync would do to a file Preflight manages in this project. */
 export type SyncOutcome =
@@ -46,15 +46,6 @@ export function isManaged(planned: PlannedFile): planned is ManagedPlan {
   return planned.outcome !== 'unmanaged'
 }
 
-async function readIfPresent(path: string): Promise<string | undefined> {
-  try {
-    return await readFile(path, 'utf8')
-  }
-  catch {
-    return undefined
-  }
-}
-
 /**
  * Works out what a sync would do, without doing any of it.
  *
@@ -66,7 +57,7 @@ export async function planSync(projectRoot: string): Promise<PlannedFile[]> {
   const { unmanaged } = await loadPreflightConfig(projectRoot)
 
   return Promise.all(MANAGED_FILES.map(async (file): Promise<PlannedFile> => {
-    const current = await readIfPresent(join(projectRoot, file))
+    const current = await readProjectFile(projectRoot, file)
 
     if (unmanaged.includes(file))
       return { file, outcome: 'unmanaged', current }

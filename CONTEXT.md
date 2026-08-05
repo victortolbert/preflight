@@ -20,6 +20,10 @@ _Avoid_: ignored, excluded, overridden
 Divergence in a managed file that has not been declared. What `preflight check` fails on, and the only thing it fails on.
 _Avoid_: conformance, compliance, non-compliance — these imply a broader property than Preflight asserts, and they invite the question of whether presets are wired or CI is present. Preflight does not check either. Say *drift*.
 
+**Unrecorded**:
+A managed file that matches what Preflight ships but has no entry in `preflight-lock.json`. Nothing has diverged, so it is not drift and does not fail `preflight check` — but nothing recorded the agreement either, so the check reports it. A file with no lock entry that does _not_ match is drift.
+_Avoid_: untracked, unsynced — the first is git's word for something else, and the second suggests `preflight sync` was never run, which is only one of the ways this happens.
+
 **Dead config**:
 A configuration file whose tool is not installed, or is installed but invoked by nothing. It is byte-identical everywhere it appears, which reads as consensus and is inertia. Dead config cannot drift, so its stability is not evidence of anything.
 _Avoid_: orphaned config, legacy config
