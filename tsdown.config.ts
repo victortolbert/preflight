@@ -5,6 +5,7 @@ export default defineConfig({
   // stay one-to-one (SPEC §12). §3's map is hand-written, so this list and that
   // map are kept in step by hand — `publint` fails CI if they ever disagree.
   entry: {
+    'index': 'src/index.ts',
     'presets/taze': 'src/presets/taze.ts',
     'presets/skills-npm': 'src/presets/skills-npm.ts',
   },

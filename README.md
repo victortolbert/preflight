@@ -44,6 +44,8 @@ preflight check    # fail CI on unexplained drift
 Divergence is often legitimate — database config *should* differ per project — so it is declared rather than detected:
 
 ```ts
+import { definePreflightConfig } from '@victortolbert/preflight'
+
 export default definePreflightConfig({
   unmanaged: ['.nvmrc'],
 })

@@ -16,6 +16,9 @@ const presetSources: Record<string, object> = {
   './skills-npm': preflightSkillsNpm,
 }
 
+/** Built subpaths checked some other way — the root exports functions, not data. */
+const nonPresetEntries = ['.']
+
 /**
  * SPEC §12: the characteristic first-publish failure is not a logic bug — it is
  * a subpath that resolves locally and 404s from the registry, or an absent
@@ -36,15 +39,24 @@ describe('packaging', () => {
       expect(existsSync(resolve(target.replace(/\.mjs$/, '.d.mts')))).toBe(true)
   })
 
-  it('covers every built entry below', () => {
+  it('accounts for every built entry below', () => {
     // Keeps the checks that follow honest as later tickets add subpaths: a new
-    // entry in the exports map fails here until it is given a source module,
-    // rather than silently going unchecked.
-    expect(modules.map(([subpath]) => subpath).sort()).toEqual(Object.keys(presetSources).sort())
+    // entry in the exports map fails here until it is accounted for, rather
+    // than silently going unchecked.
+    const accounted = [...Object.keys(presetSources), ...nonPresetEntries]
+
+    expect(modules.map(([subpath]) => subpath).sort()).toEqual(accounted.sort())
   })
 
-  it.each(modules)('builds %s to the value its source exports', async (subpath, target) => {
-    const built = await import(resolve(target))
+  it('exposes `definePreflightConfig` from the built root entry', async () => {
+    // SPEC §3: the root export exists to type `preflight.config.ts`.
+    const built = await import(resolve(pkg.exports['.']))
+
+    expect(built.definePreflightConfig).toBeTypeOf('function')
+  })
+
+  it.each(Object.keys(presetSources))('builds %s to the value its source exports', async (subpath) => {
+    const built = await import(resolve(pkg.exports[subpath as keyof typeof pkg.exports]))
 
     expect(built.default).toEqual(presetSources[subpath])
   })

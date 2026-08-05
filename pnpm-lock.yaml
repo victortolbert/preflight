@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      unconfig:
+        specifier: ^7.5.0
+        version: 7.5.0
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.2
