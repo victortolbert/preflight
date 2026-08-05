@@ -33,8 +33,15 @@ const preflightTaze = {
   /**
    * Dependencies Preflight asks taze to leave alone.
    *
-   * The FontAwesome packages are versioned behind a licensed registry, so an
-   * unattended bump proposes versions the project cannot resolve.
+   * `@fortawesome/*` is currently vestigial: neither consuming repo depends on
+   * those packages, and neither lockfile mentions them. An archived
+   * `package.json` in one of them still lists the free FontAwesome icon
+   * packages, so the rule appears to date from when they were installed.
+   *
+   * Kept because an `exclude` entry is a guard, and a guard matching nothing is
+   * its normal state — but recorded here rather than dressed up, because this
+   * is the shape of thing SPEC §8 warns about: a rule that is byte-identical
+   * everywhere, and inert everywhere.
    */
   exclude: ['@fortawesome/*'],
 } satisfies Partial<CheckOptions>
