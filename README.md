@@ -1,9 +1,15 @@
 # Preflight
 
+[![npm](https://img.shields.io/npm/v/@victortolbert/preflight)](https://www.npmjs.com/package/@victortolbert/preflight)
+
 The setup and safeguards a project should have **before** feature development begins — linting, type checking, tests, git hooks, commit conventions, dependency maintenance, CI, accessibility checks, and agent-facing project guidance — packaged so that projects share one source of truth instead of drifting copies.
 
-> **Status: built, not yet published.**
-> The preset, both commands, and the drift check are implemented and tested end to end from a packed install, against the real configuration of the projects Preflight was extracted from. There is no published package yet.
+> **Status: published.**
+> Both presets, both commands, and the drift check are tested end to end from a packed install, against the real configuration of the projects Preflight was extracted from. Releases are published by GitHub Actions through npm trusted publishing, so every version carries a provenance attestation and no publish credential is stored anywhere — see [ADR-0001](./docs/adr/0001-build-and-release-toolchain.md).
+
+```bash
+pnpm add -D @victortolbert/preflight
+```
 
 ## The problem
 
