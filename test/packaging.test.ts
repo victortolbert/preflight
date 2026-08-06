@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { init, parse } from 'es-module-lexer'
 import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
+import preflightCommitlint from '../src/presets/commitlint'
 import preflightTaze from '../src/presets/taze'
 import { MANAGED_FILES } from '../src/templates'
 
@@ -16,6 +17,7 @@ const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
 
 /** The source module each preset subpath should have been built from. */
 const presetSources: Record<string, object> = {
+  './commitlint': preflightCommitlint,
   './taze': preflightTaze,
 }
 

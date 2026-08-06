@@ -5,8 +5,8 @@ The foundational project-setup layer — the safeguards a project should have be
 ## Language
 
 **Preset**:
-Configuration consumed by reference through a subpath export, as a typed options object the consumer imports and composes. Its policy lives in the package.
-_Avoid_: extends, extended config — neither peer dependency has an `extends` key, and the word implies a mechanism that does not exist here.
+Configuration consumed by reference through a subpath export, via whatever native composition point the tool provides. Its policy lives in the package. The composition point differs by tool and is not part of the term: `taze` takes a typed options object the consumer spreads, while commitlint is named in the consumer's `extends`, because a commitlint config carries references that only resolve where it lives.
+_Avoid_: extended config — and do not assume the composition point. Saying a preset is "extended" implies every tool has an `extends` key; neither `taze` nor `skills-npm` does. Name the tool's own mechanism.
 
 **Managed file**:
 A file the CLI writes into a consuming repo and tracks by hash in `preflight-lock.json`. Distinct from a preset, which is never written into the consumer.
