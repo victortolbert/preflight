@@ -7,6 +7,7 @@ export default defineConfig({
   entry: {
     'index': 'src/index.ts',
     'cli': 'src/cli.ts',
+    'presets/commitlint': 'src/presets/commitlint.ts',
     'presets/taze': 'src/presets/taze.ts',
   },
   format: ['esm'],

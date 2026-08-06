@@ -70,12 +70,43 @@ See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives
 | `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` |
 | `.nvmrc` | CLI-written | `v24` |
 | `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` |
+| `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice |
 
 Every one of these was extracted from the consuming projects rather than chosen, and both CLI-written templates are byte-identical to what those projects already have. `preflight sync` run against either of them writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
 
 **A fourth file was cut during implementation.** `skills-npm.config.ts` looked like shared policy: byte-identical across both projects, and carrying two settings that differ from the tool's own defaults. Reading it settled the matter — it is the tool's README example verbatim, every line of it, with eight lines of placeholder examples deleted. The two "settings" are the README's values. Nothing in either project runs the tool.
 
 That is the third file cut from this scope on the same test, and the second one cut for looking like consensus when it was inertia. It is also the one that got furthest before anyone opened it: it survived a specification, a ticket, and an architecture decision record, all of which described the file rather than reading it. Preflight exists because configuration drifts when nobody looks; the same habit is what nearly shipped this.
+
+## Commit linting
+
+Opt-in, and the only preset that is. Adopting it takes three lines and one dependency:
+
+```bash
+pnpm add -D @commitlint/cli
+```
+
+```ts
+// commitlint.config.ts
+export default { extends: ['@victortolbert/preflight/commitlint'] }
+```
+
+```jsonc
+// package.json
+"simple-git-hooks": {
+  "commit-msg": "pnpm exec commitlint --edit $1"
+},
+"scripts": {
+  // git hooks are not installed until something runs simple-git-hooks
+  "prepare": "simple-git-hooks"
+}
+```
+
+Note the `extends`, rather than the re-export the taze preset uses. A commitlint config carries references that get resolved relative to wherever the config lives, so copying the object away from this package breaks them — see [ADR-0007](./docs/adr/0007-commitlint-presets-are-consumed-via-extends.md).
+
+**It is opt-in because a mandatory one would manufacture the exact thing Preflight exists to catch.** Declared as a required peer, pnpm's `auto-install-peers` silently installs commitlint into every consuming repo — including any that never wire the hook, leaving a tool installed and invoked by nothing. That is dead config by this project's own definition, arriving invisibly. See [ADR-0008](./docs/adr/0008-commit-linting-is-opt-in.md).
+
+The two rules that depart from stock `@commitlint/config-conventional` were measured, not chosen. Across 1,472 commits in the consuming repos, the stock config disagreed with practice six times and was wrong all six — four acronym-initial subjects it cannot distinguish from Sentence Case (`SHA-pin`, `WCAG`, `Chromium`), and two uses of a `content` type that is real in a content-driven repo. So `content` joins the enum, and `subject-case` drops to a warning. Nothing else changes.
 
 ## License
 
