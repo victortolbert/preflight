@@ -14,6 +14,10 @@ The five canonical triage roles, each label string equal to its name. See `docs/
 
 Single-context — `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+### Evidence
+
+An empirical claim carries its evidence — a file path, a command, or a URL — or it carries the word *inferred*. See `docs/agents/evidence-grading.md`.
+
 ## What this repo is
 
 The public, generic Preflight package. [`SPEC.md`](./SPEC.md) is decision-complete and is the source of truth for what v1 should be; read it before proposing changes to scope.
