@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          # Commit linting below needs the PR's commits, not just their tip.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
@@ -32,6 +35,41 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      # Preflight lints its own commits with the preset it ships. Until now
+      # `@commitlint/cli` was a devDependency invoked by nothing — a tool
+      # installed and run by nobody, which is this project's own definition of
+      # dead config (ADR-0003, ADR-0008). This step is what makes it live.
+      #
+      # CI rather than a `commit-msg` hook, for the reason SPEC §6 gives when it
+      # rejects hooks for drift: a hook is bypassable with `--no-verify`. It also
+      # sidesteps ADR-0008's unresolved half — Preflight cannot cause a hook to
+      # exist, because `package.json` is beyond both of SPEC §4's mechanisms, but
+      # it can add a CI step to its own repo.
+      #
+      # One commit at a time through stdin, and deliberately NOT
+      # `commitlint --from X --to Y`. The range form is the standard CI recipe and
+      # it is wrong: measured against @commitlint/cli 21.2.1 it mangles commit
+      # bodies, reporting 14 false `body-max-line-length` errors on a corpus whose
+      # longest body line is 83 characters, plus 6 spurious `footer-leading-blank`
+      # warnings. The same commits linted individually report none of them.
+      #
+      # `--no-merges` matters: on a pull_request event the checked-out HEAD is
+      # GitHub's merge ref, whose own commit message is not a conventional commit
+      # and is not authored by anyone here.
+      - name: Lint commit messages
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          failed=0
+          for sha in $(git rev-list --no-merges "$BASE_SHA"..HEAD); do
+            if ! git log -1 --format=%B "$sha" | pnpm exec commitlint; then
+              echo "::error::$(git log -1 --format='%h %s' "$sha") fails the commitlint preset"
+              failed=1
+            fi
+          done
+          exit "$failed"
 
       - name: Typecheck
         run: pnpm run typecheck
