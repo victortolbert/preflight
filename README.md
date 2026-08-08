@@ -114,6 +114,30 @@ Note the `extends`, rather than the re-export the taze preset uses. A commitlint
 
 The two rules that depart from stock `@commitlint/config-conventional` were measured, not chosen. Across 1,472 commits in the consuming repos, the stock config disagreed with practice six times and was wrong all six — four acronym-initial subjects it cannot distinguish from Sentence Case (`SHA-pin`, `WCAG`, `Chromium`), and two uses of a `content` type that is real in a content-driven repo. So `content` joins the enum, and `subject-case` drops to a warning. Nothing else changes.
 
+## Accessibility rules
+
+Three `vue-a11y` rules, spread into the `overrides` of `@antfu/eslint-config`'s `vue` block:
+
+```ts
+// eslint.config.mjs
+import preflightVueA11y from '@victortolbert/preflight/vue-a11y'
+
+export default antfu({
+  vue: {
+    a11y: true,
+    overrides: { ...preflightVueA11y },
+  },
+})
+```
+
+No dependency to add — the plugin already runs inside `@antfu/eslint-config`. So this preset raises none of commit linting's opt-in question: there is no tool a consumer could install and leave unwired.
+
+**Three rules, though one consuming repo carries thirteen.** Stripping each repo's overrides and running eslint shows none of them are stale — every rule each repo silences does fire in it. But each repo silences exactly what its own content trips, and the application repo trips ten more only because it holds a component showcase the template has no equivalent of. Ten rules the template has never had occasion to hold a view on are not agreement, so they stay where they are.
+
+The rule worth having is `label-has-for`. The stock default demands *both* nesting and an `id`, which rejects `<label>Name <input></label>` — valid HTML that associates perfectly well. Switching to `some` takes the template from 21 hits to **0** and the application repo from 96 to **46**: it deletes the false positives and leaves the real ones. That is why it ships as an `error` rather than the blanket `off` one repo had settled on. See [ADR-0009](./docs/adr/0009-the-accessibility-gap-is-three-rules.md).
+
+Adopting this is **not** the no-op the v1 files were. A repo that currently disables `label-has-for` will see real violations on first run — that is the preset working, not a defect.
+
 ## License
 
 MIT © 2026 Victor Tolbert

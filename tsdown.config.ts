@@ -9,6 +9,7 @@ export default defineConfig({
     'cli': 'src/cli.ts',
     'presets/commitlint': 'src/presets/commitlint.ts',
     'presets/taze': 'src/presets/taze.ts',
+    'presets/vue-a11y': 'src/presets/vue-a11y.ts',
   },
   format: ['esm'],
   platform: 'node',
