@@ -105,6 +105,35 @@ describe('checkProject — no lock entry', () => {
 
     expect(hasDrift(await checkProject(root))).toBe(true)
   })
+
+  it('treats a file Preflight started managing after the last sync as news, not drift', async () => {
+    // ADR-0010. The lock records the files that existed when this project last
+    // synced; Preflight has since started managing another. It is absent locally
+    // and has no lock entry — but the project chose nothing and did nothing, so
+    // its CI must not go red on a routine upgrade. That is the same reasoning
+    // `upstream-moved` already applies to files the lock knows about.
+    const root = await lockedProject()
+    await rm(join(root, '.nvmrc'))
+    await writeLock(root, {
+      version: LOCK_VERSION,
+      files: {
+        'axe-linter.yml': { computedHash: hashContents(await readTemplate('axe-linter.yml')) },
+      },
+    })
+
+    await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'unrecorded' })
+    expect(hasDrift(await checkProject(root))).toBe(false)
+  })
+
+  it('still fails an absent file when the project has never synced', async () => {
+    // The distinction the case above turns on. Both have no lock entry and no
+    // file; only one is receiving news. A project with no lock at all has not
+    // been set up, and that is worth failing on rather than reporting.
+    const root = await project()
+
+    await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
+    expect(hasDrift(await checkProject(root))).toBe(true)
+  })
 })
 
 describe('checkProject — a missing managed file', () => {

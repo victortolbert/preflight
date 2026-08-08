@@ -1,0 +1,85 @@
+import { describe, expect, it } from 'vitest'
+import pkg from '../package.json' with { type: 'json' }
+import preflightCommitlint from '../src/presets/commitlint'
+import preflightTaze from '../src/presets/taze'
+import preflightVueA11y from '../src/presets/vue-a11y'
+
+/**
+ * The version contract, as assertions rather than prose.
+ *
+ * ADR-0010 enumerates what `@victortolbert/preflight` promises across versions,
+ * and defines a breaking change as one that can *newly fail a consumer's build*.
+ * A policy nothing checks is the shape of thing this project keeps deleting from
+ * other people's repos — a documented mechanism that has quietly stopped
+ * working ([ADR-0003](../docs/adr/0003-drop-skills-json-as-dead-config.md),
+ * [ADR-0009](../docs/adr/0009-the-accessibility-gap-is-three-rules.md)). So the
+ * covered surfaces are pinned here.
+ *
+ * **These tests are meant to fail when you change the surface.** A red assertion
+ * is not a bug report; it is the question "is this release breaking?" arriving
+ * before publish rather than after. Update the pin *and* the version in the same
+ * change.
+ *
+ * Not pinned, deliberately: CLI commands and flags, which `cli-sync.test.ts` and
+ * `cli-check.test.ts` exercise behaviourally — a literal flag list on top of
+ * those would be assertion rather than coverage. The lock file format is not
+ * pinned either; ADR-0010 declares it internal.
+ */
+describe('the version contract — ADR-0010', () => {
+  it('exports exactly these subpaths', () => {
+    // Pinned as a literal rather than derived from `pkg.exports`, which would
+    // make the test agree with whatever the map happens to say. `packaging.test.ts`
+    // catches a subpath being *added* without being accounted for; nothing caught
+    // one being removed, and removal is the breaking direction.
+    expect(Object.keys(pkg.exports)).toEqual([
+      '.',
+      './commitlint',
+      './taze',
+      './vue-a11y',
+      './package.json',
+    ])
+  })
+
+  it('requires this Node floor', () => {
+    // Raising it cannot break a build at runtime, but it makes the package
+    // uninstallable for anyone below the new floor — the same class of harm, and
+    // one no test of behaviour would notice.
+    expect(pkg.engines.node).toBe('>=24')
+  })
+})
+
+/**
+ * Preset key sets, frozen.
+ *
+ * The surface with the least protection anywhere in the package. Managed files
+ * pass through a lock and an explicit `preflight sync`; presets are consumed by
+ * reference (SPEC §4), so a changed rule reaches every consumer on any version
+ * their range allows, with no sync step and nothing in `preflight check` that
+ * sees it. Adding an enforcing rule to any preset below can turn a consumer's
+ * lint or commit hook red without them touching anything.
+ */
+describe('the version contract — preset surfaces', () => {
+  it('freezes the commitlint preset to what it inherits and what it overrides', () => {
+    expect(Object.keys(preflightCommitlint).sort()).toEqual(['extends', 'rules'])
+    expect(preflightCommitlint.extends).toEqual(['@commitlint/config-conventional'])
+    // Everything else config-conventional asserts is inherited untouched, so the
+    // set of rules this preset *changes* is the whole of its own surface.
+    expect(Object.keys(preflightCommitlint.rules).sort()).toEqual(['subject-case', 'type-enum'])
+  })
+
+  it('freezes the taze preset', () => {
+    expect(Object.keys(preflightTaze).sort()).toEqual(['exclude'])
+  })
+
+  it('freezes the vue-a11y preset', () => {
+    // Asserted here for the version contract, and again in `vue-a11y.test.ts`
+    // for ADR-0009's reasoning about why the set is three rules and not thirteen.
+    // The overlap is deliberate: the two tests answer different questions and
+    // either one going green alone would be a gap.
+    expect(Object.keys(preflightVueA11y).sort()).toEqual([
+      'vue-a11y/label-has-for',
+      'vue-a11y/media-has-caption',
+      'vue-a11y/no-autofocus',
+    ])
+  })
+})

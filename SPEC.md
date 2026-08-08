@@ -155,6 +155,8 @@ A hash per CLI-written file:
 | differs from lock | matches package | local edit — drift or override |
 | matches lock | differs from package | upstream moved; sync available |
 
+This table specifies the mechanism, and stays as written. The implementation distinguishes five states rather than three — it also covers a file with no lock entry at all, which the table assumes away, and a file absent because Preflight began managing it *after* a project's last sync, which is news rather than drift. See [ADR-0010](./docs/adr/0010-the-version-contract.md) and `src/check.ts`'s `CheckState`.
+
 ### Escape hatch — declared opt-out
 
 ```ts
@@ -229,7 +231,9 @@ Accepted for v1, recorded so they are not rediscovered as surprises.
 1. **v1 requires a CI step it does not ship.** CI workflows are deferred, so each consumer hand-adds `preflight check` — and that step can be deleted, silently disabling enforcement. The strongest argument for CI leading v2.
 2. **Preset abandonment is undetectable.** Replace a preset import with inline config and nothing notices; the dependency is still installed and the lockfile still valid. Because presets are spreadable options objects (§4), the weaker form is undetectable too: a consumer can override an individual key and nothing reports it.
 3. **`preflight.config.ts` is unmanaged by construction.** Nothing prevents a repo opting out of everything and passing. The check is an honesty aid, not a control.
-4. **v1 is small.** Three files, two configured tools — one preset, two CLI-written. It proves the mechanism honestly; whether that is a satisfying debut is a judgement call, worth revisiting once the mechanism lands. v1 has now shrunk four times, every time on measurement rather than nerve — and the last one only because implementation went and read a file the planning had only described.
+4. ~~**v1 is small.**~~ **Revisited, as this entry asked.** Three files, two configured tools — one preset, two CLI-written. It proves the mechanism honestly; whether that is a satisfying debut is a judgement call, worth revisiting once the mechanism lands. v1 has now shrunk four times, every time on measurement rather than nerve — and the last one only because implementation went and read a file the planning had only described.
+
+    The mechanism has landed: installed, consumed by reference, and `preflight check`-enforced in CI in both consuming repos, across three releases with provenance. Taking that as the cue to cut 1.0.0 turned out to be wrong, and measuring is what said so — a newly managed file failed `check` in a repo that had chosen nothing, and preset changes reach consumers with no lock, no sync, and no check at all. Since `^0.2.0` does not admit `0.3.0`, the 0.x range was quietly doing the safety work that 1.0.0 would have removed. So the answer to "is small a satisfying debut" is that size was the wrong axis: what the debut lacked was a stated contract, not more files. See [ADR-0010](./docs/adr/0010-the-version-contract.md), which sets that contract and gates 1.0.0 on §11's migration item.
 
 ---
 

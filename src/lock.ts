@@ -36,8 +36,10 @@ export async function readLock(projectRoot: string): Promise<PreflightLock | und
     return undefined
   }
 
+  let lock: PreflightLock
+
   try {
-    return JSON.parse(contents) as PreflightLock
+    lock = JSON.parse(contents) as PreflightLock
   }
   catch (cause) {
     // Distinguished from "no lock at all", which is ordinary. A lock that exists
@@ -45,6 +47,25 @@ export async function readLock(projectRoot: string): Promise<PreflightLock | und
     // as absent would rewrite it and lose whatever it recorded.
     throw new Error(`${LOCK_FILE} is not valid JSON. Run \`preflight sync\` to regenerate it.`, { cause })
   }
+
+  // The compatibility mechanism SPEC §6 specified, actually connected. Until
+  // 0.3.0 `LOCK_VERSION` was exported, documented as the thing to bump for a
+  // breaking shape change, and read by nothing — so a future v2 lock would have
+  // been parsed as though it were v1 and its hashes compared against a shape
+  // this code does not understand. A version field nobody checks is the shape of
+  // dead config ADR-0003 deleted; this is the check that makes it a mechanism.
+  //
+  // Only a *newer* lock is refused. An older one is not an error: it is what a
+  // migration would read, and failing here would leave a project unable to run
+  // the very command that upgrades it.
+  if (lock.version > LOCK_VERSION) {
+    throw new Error(
+      `${LOCK_FILE} is version ${lock.version}, but this Preflight understands version ${LOCK_VERSION}. `
+      + 'Upgrade @victortolbert/preflight to read it.',
+    )
+  }
+
+  return lock
 }
 
 /**
