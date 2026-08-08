@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
 import preflightCommitlint from '../src/presets/commitlint'
 import preflightTaze from '../src/presets/taze'
+import preflightVueA11y from '../src/presets/vue-a11y'
 import { MANAGED_FILES } from '../src/templates'
 
 const run = promisify(execFile)
@@ -19,6 +20,7 @@ const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
 const presetSources: Record<string, object> = {
   './commitlint': preflightCommitlint,
   './taze': preflightTaze,
+  './vue-a11y': preflightVueA11y,
 }
 
 /** Built subpaths checked some other way — the root exports functions, not data. */
