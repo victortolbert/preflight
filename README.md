@@ -138,6 +138,22 @@ The rule worth having is `label-has-for`. The stock default demands *both* nesti
 
 Adopting this is **not** the no-op the v1 files were. A repo that currently disables `label-has-for` will see real violations on first run — that is the preset working, not a defect.
 
+## Versioning
+
+**Breaking means anything that can newly fail your build.** Three changes that look additive and are treated as breaking anyway:
+
+- **adding a managed file** — it arrives absent from your repo and `preflight check` would fail on it
+- **adding or tightening an enforcing preset rule** — presets are consumed by reference, so a change reaches you with no lock, no `sync`, and nothing in `check` that sees it
+- **raising the Node engine floor** — it cannot fail at runtime, but it makes the package uninstallable
+
+Covered by that promise: the `exports` map, preset values, CLI commands and flags, exit codes, the `PreflightConfig` and `ManagedFile` types, and the engine floor. The `preflight-lock.json` format is **internal** — Preflight generates it, nothing else reads it, and freezing it would price a format improvement at a major bump.
+
+**While this package is 0.x, breaking changes go in the minor slot** — `0.4.0`, not `0.3.1`. A caret range is therefore safe as it stands: `^0.3.0` resolves `>=0.3.0 <0.4.0`, so no breaking change reaches you without a deliberate bump, patch releases included.
+
+**1.0.0 ships when migration for partially-adopted repos is settled** (SPEC §11). That is the one open question that could still change the CLI surface, and 1.0.0 is a claim that it won't.
+
+The covered surfaces are pinned in `test/stability.test.ts`, so a breaking change fails CI before it can be published rather than after. See [ADR-0010](./docs/adr/0010-the-version-contract.md).
+
 ## License
 
 MIT © 2026 Victor Tolbert

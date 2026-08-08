@@ -18,9 +18,14 @@ export type CheckState =
    * Local diverges from the lock, and nothing declared that it should.
    *
    * The only state that fails the check (CONTEXT.md's definition of drift). It
-   * covers a missing managed file, and the fourth state SPEC §6's table omits:
-   * local differing from both the lock and the package, which is where a project
-   * lands when it edits a managed file and then upgrades.
+   * covers a managed file the lock knows about and the project has deleted, and
+   * the fourth state SPEC §6's table omits: local differing from both the lock
+   * and the package, which is where a project lands when it edits a managed file
+   * and then upgrades.
+   *
+   * It no longer covers *every* missing file. A file absent from a project that
+   * has synced before, with no lock entry, is one Preflight started managing
+   * after that sync — {@link CheckState.unrecorded}, not drift. See ADR-0010.
    */
   | 'drifted'
   /**
@@ -31,11 +36,19 @@ export type CheckState =
    */
   | 'upstream-moved'
   /**
-   * No lock entry, but the file already matches what Preflight ships.
+   * No lock entry, and nothing to fail on. Two ways to arrive.
    *
-   * Nothing has diverged, so there is nothing to fail on — but nothing recorded
-   * the agreement either, so it is reported. A file with no lock entry that does
-   * *not* match is {@link CheckState.drifted}.
+   * The file already matches what Preflight ships — nothing has diverged, but
+   * nothing recorded the agreement either. This is how a project looks the
+   * moment before its first sync, and SPEC §2's "adoption is a no-op" dividend
+   * depends on it passing.
+   *
+   * Or the file is absent from a project that *has* synced before, which means
+   * Preflight started managing it after that sync. News, not a violation: the
+   * project chose nothing, and failing would redden its CI on a routine upgrade.
+   *
+   * A file with no lock entry that is present and does *not* match is
+   * {@link CheckState.drifted}.
    */
   | 'unrecorded'
   /** Declared in `preflight.config.ts`. Skipped entirely, and never fails. */
@@ -80,8 +93,24 @@ export async function checkProject(projectRoot: string): Promise<CheckedFile[]> 
 
     const locked = lock?.files[file]?.computedHash
 
-    if (locked === undefined)
-      return { file, state: current === packaged ? 'unrecorded' : 'drifted' }
+    if (locked === undefined) {
+      // Nothing recorded this file, and nothing has diverged from what ships.
+      if (current === packaged)
+        return { file, state: 'unrecorded' }
+
+      // Absent, in a project that has synced before: Preflight started managing
+      // this file *after* that sync. `upstream-moved` already refuses to fail a
+      // consumer's CI just because Preflight moved; that protection simply never
+      // covered a file the lock had never seen, which is the gap ADR-0010 closes.
+      //
+      // `lock !== undefined` is load bearing. A project that has never synced is
+      // not receiving news — it has not been set up — so a missing managed file
+      // there is still drift, and still worth failing on.
+      if (current === undefined && lock !== undefined)
+        return { file, state: 'unrecorded' }
+
+      return { file, state: 'drifted' }
+    }
 
     if (current === undefined || hashContents(current) !== locked)
       return { file, state: 'drifted' }

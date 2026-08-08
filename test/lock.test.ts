@@ -71,3 +71,29 @@ describe('a lock file a human has mangled', () => {
     await expect(readLock(root)).rejects.toThrow(/preflight-lock\.json/)
   })
 })
+
+describe('lock format compatibility', () => {
+  // ADR-0010. Until 0.3.0 `LOCK_VERSION` was exported and documented as the
+  // field to bump for a breaking shape change, and read by nothing — so a v2
+  // lock would have been parsed as v1 and its hashes compared against a shape
+  // this code does not understand.
+  it('refuses a lock written by a newer Preflight, naming the fix', async () => {
+    const root = await project()
+    await writeLock(root, { version: LOCK_VERSION + 1, files: {} })
+
+    await expect(readLock(root)).rejects.toThrow(/version 2.*understands version 1|Upgrade/s)
+  })
+
+  it('accepts an older lock, because a migration has to be able to read one', async () => {
+    // Failing on an older lock would leave a project unable to run the very
+    // command that upgrades it.
+    const root = await project()
+    await writeFile(
+      join(root, LOCK_FILE),
+      `${JSON.stringify({ version: LOCK_VERSION - 1, files: {} }, null, 2)}\n`,
+      'utf8',
+    )
+
+    await expect(readLock(root)).resolves.toMatchObject({ version: LOCK_VERSION - 1 })
+  })
+})
