@@ -8,6 +8,14 @@ pnpm run release
 
 `bumpp` prompts for the new version, updates `package.json`, commits `chore: release vX.Y.Z`, tags `vX.Y.Z`, and pushes. Pushing the tag is what starts `.github/workflows/release.yml`, which typechecks, builds, runs the packaging checks and the tests, and then publishes.
 
+To release without the prompts — from a script, or an agent session that has no terminal to answer them — name the version and pass `--yes` to `bumpp` directly:
+
+```bash
+pnpm exec bumpp 0.4.0 --yes
+```
+
+**Not `pnpm run release -- 0.4.0 --yes`.** That form does not forward the flags, so `bumpp` still prompts and the caller hangs waiting on a question it cannot see.
+
 There is no credential to rotate — see [ADR-0001](./adr/0001-build-and-release-toolchain.md). Before the first automated release, though, there is setup that can only happen once the package exists.
 
 ## One-time setup
