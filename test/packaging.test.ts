@@ -26,6 +26,9 @@ const presetSources: Record<string, object> = {
 /** Built subpaths checked some other way — the root exports functions, not data. */
 const nonPresetEntries = ['.']
 
+/** The one field this file reads out of `npm pack --json`. */
+interface PackResult { files: { path: string }[] }
+
 /**
  * SPEC §12: the characteristic first-publish failure is not a logic bug — it is
  * a subpath that resolves locally and 404s from the registry, or an absent
@@ -66,7 +69,20 @@ describe('packaging', () => {
       { cwd: fileURLToPath(repoRoot) },
     )
 
-    const packed: string[] = JSON.parse(stdout)[0].files.map((f: { path: string }) => f.path)
+    // `npm pack --json` changed shape in npm 12: it used to emit an array of
+    // results and now emits an object keyed by package name. Accept both. This
+    // is not defensiveness for its own sake — the array form already fails on
+    // npm 12.0.2, and CI stayed green only because its bundled npm is older, so
+    // the check was one runner-image bump from breaking with no code change.
+    const parsed = JSON.parse(stdout) as PackResult[] | Record<string, PackResult>
+    const [result] = Array.isArray(parsed) ? parsed : Object.values(parsed)
+
+    // A third shape would mean npm changed the contract again, and every
+    // assertion below would vacuously pass against an empty list. Fail loudly.
+    if (!result)
+      throw new Error(`\`npm pack --json\` returned an unrecognised shape: ${stdout.slice(0, 200)}`)
+
+    const packed: string[] = result.files.map(f => f.path)
 
     for (const file of MANAGED_FILES)
       expect(packed).toContain(`templates/${file}`)
