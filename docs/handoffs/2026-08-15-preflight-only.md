@@ -75,16 +75,39 @@ one command; the prose does not answer it at all.
 - **1.0.0** — gated by SPEC §11's "migration for partially-adopted repos", per
   ADR-0010. Unchanged.
 
-### Loose end, cheap to close
+### Resolved: the 301 vs 307 denominator
 
-ADR-0009 and ADR-0011 both cite `uxlab`'s **301** `.vue` files. `git ls-files
-'*.vue'` reports **307**, and has for at least 25 commits, so this is not recent
-drift. `nuxt-kickstart`'s 159 matches git exactly. The likely explanation is that
-301 is eslint's *linted* count and `uxlab`'s config carries an `ignores` list
-(`drizzle/**`, `**/migrations/*`, a Video.js DOM snapshot) that `nuxt-kickstart`
-has no equivalent of — **plausible, not verified.** It changes no conclusion in
-either ADR (both turned on 0 violations), but an unexplained denominator is what
-§10.1 got caught by, so resolve it before re-measuring anything a11y-shaped.
+**301 is the `.vue` files eslint lints under `app/`.** `uxlab` tracks 307, of
+which 303 are under `app/`, and eslint ignores 2 of those as vendored Video.js
+DOM snapshots — 303 − 2 = 301. The remaining 4 are one stray `error-1.vue` at the
+repo root and three inside `uxlab-eds-starter/prototype/`, a nested prototype.
+Labelled in ADR-0011 and SPEC §10.4; nothing was wrong, only unlabelled.
+
+Two guesses were checked and both were wrong, which is why this needed measuring
+rather than reasoning:
+
+- **"The count grew after the ADRs."** No — `uxlab`'s `.vue` count has been 307
+  for at least 120 commits, so 307 was the state when both ADRs were written.
+- **"301 is eslint's linted count."** Not quite — eslint ignores only 2 of the
+  307, so its global linted count is **305**. The `app/` scoping is the other
+  half, and it was the half nobody wrote down.
+
+**Why it hid.** `nuxt-kickstart`'s 159 is simultaneously its tracked count, its
+linted count and its `app/` count — all three coincide, because every `.vue` file
+it has is under `app/` and none are ignored. So checking the template's figure
+against `git ls-files` confirms it, and the same check on `uxlab` does not. **A
+denominator that validates in one repo and not the other is the tell.**
+
+Two things closed while resolving it:
+
+- **ADR-0011's "15 unicorn rules" is now reproducible.** The config enables 16 on
+  a plain `.ts` file; exactly one, `unicorn/filename-case`, still applies to
+  `.vue` via a separate block. 16 − 1 = 15.
+- **The 0-violations finding does not depend on the scoping.** Re-running all 15
+  rules over the 6 excluded `.vue` files finds **0**, so it holds across all 307.
+
+`ADR-0009` was also miscited here as carrying the 301 figure — it does not
+mention it. Only ADR-0011 and SPEC §10.4 did.
 
 ---
 
