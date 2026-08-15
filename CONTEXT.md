@@ -24,6 +24,10 @@ _Avoid_: conformance, compliance, non-compliance — these imply a broader prope
 A managed file that matches what Preflight ships but has no entry in `preflight-lock.json`. Nothing has diverged, so it is not drift and does not fail `preflight check` — but nothing recorded the agreement either, so the check reports it. A file with no lock entry that does _not_ match is drift.
 _Avoid_: untracked, unsynced — the first is git's word for something else, and the second suggests `preflight sync` was never run, which is only one of the ways this happens.
 
+**Consumer**:
+One of the two repos Preflight is measured against — `nuxt-kickstart`, the template, and `uxlab`, the application. They are Preflight's *evidence*, not its scope. A §10 backlog item closes when measuring them says what it says; their own product work, releases and incidents are theirs and do not belong on Preflight's backlog. The two are not interchangeable: `nuxt-kickstart` is stable and moves rarely, `uxlab` is volatile, and that volatility is the clock [ADR-0006](./docs/adr/0006-ci-workflows-are-not-yet-shareable.md)'s precondition runs on rather than noise to be quieted.
+_Avoid_: downstream, dependent — both imply Preflight's changes reach them on Preflight's schedule. Adoption is the consumer's decision and has lagged a release by days more than once.
+
 **Dead config**:
 A configuration file whose tool is not installed, or is installed but invoked by nothing. It is byte-identical everywhere it appears, which reads as consensus and is inertia. Dead config cannot drift, so its stability is not evidence of anything.
 _Avoid_: orphaned config, legacy config
