@@ -33,8 +33,10 @@ Both are set explicitly in both repos, in opposite directions, and every hit is 
 
 | Rule | `uxlab` | `nuxt-kickstart` | Cost to converge on the other's |
 |---|---|---|---|
-| `vue/component-name-in-template-casing` | `PascalCase` | `kebab-case` | uxlab: 1,782 hits / **264 of 301** `.vue` files · nk: 1,168 hits / **138 of 159** |
+| `vue/component-name-in-template-casing` | `PascalCase` | `kebab-case` | uxlab: 1,782 hits / **264 of 301** linted `app/` SFCs · nk: 1,168 hits / **138 of 159** |
 | `vue/block-order` | `template, style, script` | `template, script, style` | uxlab: 69 hits / 69 files · nk: 39 hits / 39 files |
+
+**What the denominators count**, since the two repos' happen to mean different things. `301` and `159` are the `.vue` files **eslint lints under `app/`**, which is the population either rule could act on. For `nuxt-kickstart` that is also its entire tracked set — all 159 `.vue` files live under `app/` and none are ignored, so tracked, linted and `app/`-scoped all coincide. For `uxlab` they do not: `git ls-files '*.vue'` reports **307**, of which 303 are under `app/`, and eslint ignores 2 of those as vendored Video.js DOM snapshots — hence 301. The other 4 are one stray `error-1.vue` at the repo root and three files inside `uxlab-eds-starter/prototype/`, a nested prototype. That coincidence in the template is why the mismatch went unlabelled: checking `159` against `git ls-files` confirms it, and checking `301` the same way does not. Verified 2026-08-15; `uxlab`'s `.vue` count has been 307 for at least 120 commits, so this was the state when this ADR was written and not later drift.
 
 **Neither centralises, because the two repos have genuinely different audiences.** The template's `kebab-case` makes its templates read as HTML, which is what a starter's snippets are for — it enforces this on framework components too, so it writes `<nuxt-page>` and `<u-button>`. The application repo's `PascalCase` matches the Vue SFC style guide and the Nuxt UI documentation its components are written against. Each is right where it sits.
 
@@ -58,11 +60,13 @@ That rationale is specific to being a template whose markup gets pasted into a b
 
 Not a style question, but found by the same measurement and worth recording where the numbers are.
 
-`@antfu/eslint-config` **9.1.0** scoped its unicorn block to `files: [GLOB_SRC]` — `**/*.?([cm])[jt]s?(x)`, which excludes `.vue`. Before that the block was unscoped. The repos sat on either side of the change (`uxlab` 9.2.0, `nuxt-kickstart` 9.0.0), so 15 unicorn rules silently stopped applying to `uxlab`'s 301 Vue SFCs at upgrade, with nothing in either config to record it.
+`@antfu/eslint-config` **9.1.0** scoped its unicorn block to `files: [GLOB_SRC]` — `**/*.?([cm])[jt]s?(x)`, which excludes `.vue`. Before that the block was unscoped. The repos sat on either side of the change (`uxlab` 9.2.0, `nuxt-kickstart` 9.0.0), so 15 unicorn rules silently stopped applying to `uxlab`'s Vue SFCs at upgrade, with nothing in either config to record it.
+
+Where the **15** comes from, since it is otherwise unreproducible: the config enables **16** unicorn rules on a plain `.ts` file, and exactly one of them — `unicorn/filename-case` — is still applied to `.vue` by a separate block. The other 15 are the ones that fell out.
 
 **Preflight ships no preset to restore them**, for three reasons measured in order:
 
-1. **It costs nothing today.** Re-enabling all 15 rules across both repos' Vue files finds **0 violations** — 0 in `uxlab`'s 301 files, 0 in `nuxt-kickstart`'s 159.
+1. **It costs nothing today.** Re-enabling all 15 rules across both repos' Vue files finds **0 violations** — 0 in `uxlab`'s 301 linted `app/` SFCs, 0 in `nuxt-kickstart`'s 159. Re-run on 2026-08-15 over the 6 `.vue` files that denominator excludes — the 2 ignored snapshots and the 4 outside `app/` — also finds **0**, so the result holds across all 307 and does not depend on the scoping.
 2. **Upstream did it on purpose.** The change is [`8207876`](https://github.com/antfu/eslint-config/commit/8207876), released in 9.1.0 as `fix: update deps and scope unicorn rules`. It splits plugin registration from rule application so the rules stop firing on non-source files. `.vue` falling out is an unremarked consequence rather than a stated goal, but the commit is deliberate and no upstream issue reports the side effect.
 3. **A preset guarding zero violations is the thing [ADR-0003](./0003-drop-skills-json-as-dead-config.md) exists to prevent.** Shipping one would mean a package release and an adoption PR in each consumer, to override a considered upstream decision, for no measured defect.
 
