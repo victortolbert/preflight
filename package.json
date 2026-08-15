@@ -32,6 +32,7 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./commitlint": "./dist/presets/commitlint.mjs",
+    "./security-headers": "./dist/presets/security-headers.mjs",
     "./taze": "./dist/presets/taze.mjs",
     "./vue-a11y": "./dist/presets/vue-a11y.mjs",
     "./package.json": "./package.json"

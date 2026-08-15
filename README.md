@@ -138,6 +138,30 @@ The rule worth having is `label-has-for`. The stock default demands *both* nesti
 
 Adopting this is **not** the no-op the v1 files were. A repo that currently disables `label-has-for` will see real violations on first run — that is the preset working, not a defect.
 
+## Security headers
+
+Three response headers, spread into Nitro's `routeRules`:
+
+```ts
+// nuxt.config.ts
+import preflightSecurityHeaders from '@victortolbert/preflight/security-headers'
+
+export default defineNuxtConfig({
+  routeRules: {
+    ...preflightSecurityHeaders,
+    '/app': { redirect: '/dashboard' },
+  },
+})
+```
+
+Nothing to install, and unlike every other preset here this one is **not** a no-op on adoption: it adds headers that are currently absent.
+
+**Reclaimed from `netlify.toml`, where both repos had agreed on them and neither was served them.** The header blocks are byte-identical in both consuming repos — the cleanest agreement Preflight has measured. They were also entirely inert: neither repo has a Netlify site or a Vercel project any more, and the one that is live serves from Railway, which reads neither file. A request to production returned no `X-Frame-Options`, no `X-Content-Type-Options` and no `Referrer-Policy`. `routeRules` is where the policy survives a change of host, which is what §10.5 meant by *host-independently*.
+
+**Three headers, though the agreed block holds five.** The other two are `immutable` caching for `/_nuxt/*` and `/img/*`. Nitro already sets that header on `/_nuxt/*` itself, so restating it would guard nothing. `/img/*` serves `public/`, whose filenames carry no content hash — `immutable` there means a replaced image is ignored for a year, so that rule failing to reach production was luck, not design.
+
+**No HSTS and no CSP**, which are the two a reader looks for first. Neither repo sets either, anywhere. That is silence rather than consensus, and both carry real deployment risk this package cannot judge from here. See [ADR-0012](./docs/adr/0012-security-headers-are-reclaimed-as-route-rules.md).
+
 ## Versioning
 
 **Breaking means anything that can newly fail your build.** Three changes that look additive and are treated as breaking anyway:

@@ -11,8 +11,10 @@ Working directory: `~/Projects/preflight-pkg`.
 
 ## The state, in one line
 
-**SPEC §10.1–10.4 are all genuinely closed, `main` is clean with no PR open, and
-what remains is four unmeasured backlog items plus a version gate.**
+**SPEC §10.1–10.5 are closed, `main` is clean, and what remains is three
+unmeasured backlog items plus a version gate — but §10.5 shipped a preset that
+changes behaviour, and the consumer that needs it has a live production gap until
+it adopts.**
 
 ---
 
@@ -65,10 +67,22 @@ one command; the prose does not answer it at all.
 
 ## Open
 
-- **SPEC §10.5–10.8 remain unmeasured** — deploy security headers, markdownlint,
-  editor config, and tsconfig/vitest/playwright. Four for four, measuring has
-  reversed, rescoped, reinterpreted or vindicated the item rather than confirming
-  it as written; expect the same and do not promote one on its rank.
+- **The application repo serves no security headers in production, and this
+  release does not change that.** Shipping the preset is not deploying it. Until
+  that repo spreads `@victortolbert/preflight/security-headers` into its
+  `routeRules` and redeploys, `uxlab.designcoder.net` continues to return no
+  `X-Frame-Options`, no `X-Content-Type-Options` and no `Referrer-Policy`.
+  **That is the consumer's item, not Preflight's** — but it is the only open
+  finding here with a live effect, and it does not need to wait for a release:
+  four lines in its own `routeRules` close it today. See [ADR-0012](../adr/0012-security-headers-are-reclaimed-as-route-rules.md).
+- **A release is needed before either consumer can adopt.** `0.3.0` is published;
+  the preset is on `main` and nowhere else. §10.5's deliverable is inert until
+  then, unlike every v1 file, which changed nothing on adoption by design.
+- **SPEC §10.6–10.8 remain unmeasured** — markdownlint, editor config, and
+  tsconfig/vitest/playwright. Five for five, measuring has moved the item rather
+  than confirming it as written, and §10.5 moved it in the direction the previous
+  four did not: **it got bigger.** Four consecutive shrinking results make "the
+  backlog overstates itself" the tempting read, and it is the wrong one.
 - **ADR-0006's precondition is one bump of "a few."** Both repos SHA-pin every
   action and both survived the `@antfu/eslint-config` 9.3.0 bump. The clock is
   running and it is the consumers' activity that advances it.
