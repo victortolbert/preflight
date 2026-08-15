@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
 import preflightCommitlint from '../src/presets/commitlint'
+import preflightSecurityHeaders from '../src/presets/security-headers'
 import preflightTaze from '../src/presets/taze'
 import preflightVueA11y from '../src/presets/vue-a11y'
 
@@ -34,6 +35,7 @@ describe('the version contract — ADR-0010', () => {
     expect(Object.keys(pkg.exports)).toEqual([
       '.',
       './commitlint',
+      './security-headers',
       './taze',
       './vue-a11y',
       './package.json',
@@ -80,6 +82,19 @@ describe('the version contract — preset surfaces', () => {
       'vue-a11y/label-has-for',
       'vue-a11y/media-has-caption',
       'vue-a11y/no-autofocus',
+    ])
+  })
+
+  it('freezes the security-headers preset', () => {
+    // Both the route key and the header names, because for this preset the key
+    // is part of the contract rather than packaging: `/**` and `/*` are both
+    // valid Nitro rules with different coverage, so narrowing it would silently
+    // stop protecting nested routes without failing anything else.
+    expect(Object.keys(preflightSecurityHeaders)).toEqual(['/**'])
+    expect(Object.keys(preflightSecurityHeaders['/**'].headers).sort()).toEqual([
+      'Referrer-Policy',
+      'X-Content-Type-Options',
+      'X-Frame-Options',
     ])
   })
 })

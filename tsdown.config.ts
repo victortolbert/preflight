@@ -8,6 +8,7 @@ export default defineConfig({
     'index': 'src/index.ts',
     'cli': 'src/cli.ts',
     'presets/commitlint': 'src/presets/commitlint.ts',
+    'presets/security-headers': 'src/presets/security-headers.ts',
     'presets/taze': 'src/presets/taze.ts',
     'presets/vue-a11y': 'src/presets/vue-a11y.ts',
   },

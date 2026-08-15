@@ -7,6 +7,7 @@ import { init, parse } from 'es-module-lexer'
 import { describe, expect, it } from 'vitest'
 import pkg from '../package.json' with { type: 'json' }
 import preflightCommitlint from '../src/presets/commitlint'
+import preflightSecurityHeaders from '../src/presets/security-headers'
 import preflightTaze from '../src/presets/taze'
 import preflightVueA11y from '../src/presets/vue-a11y'
 import { MANAGED_FILES } from '../src/templates'
@@ -19,6 +20,7 @@ const resolve = (path: string) => fileURLToPath(new URL(path, repoRoot))
 /** The source module each preset subpath should have been built from. */
 const presetSources: Record<string, object> = {
   './commitlint': preflightCommitlint,
+  './security-headers': preflightSecurityHeaders,
   './taze': preflightTaze,
   './vue-a11y': preflightVueA11y,
 }
