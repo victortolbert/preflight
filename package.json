@@ -1,7 +1,7 @@
 {
   "name": "@victortolbert/preflight",
   "type": "module",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": false,
   "packageManager": "pnpm@11.20.0",
   "description": "The foundational project-setup layer — the safeguards a project should have before feature work begins.",
