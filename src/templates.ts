@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
  * have to exist separately — consumers need the union to type `unmanaged`, and
  * the CLI needs a list it can iterate.
  */
-export const MANAGED_FILES = ['.nvmrc', 'axe-linter.yml'] as const satisfies readonly ManagedFile[]
+export const MANAGED_FILES = ['.editorconfig', '.nvmrc', 'axe-linter.yml'] as const satisfies readonly ManagedFile[]
 
 /**
  * Resolved against this module rather than the process's working directory, so

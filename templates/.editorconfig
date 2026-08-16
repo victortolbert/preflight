@@ -1,0 +1,25 @@
+# Derived from the consuming repos' eslint config, not chosen. Every key below
+# restates a rule both repos already enforce byte-identically, so an editor
+# following this file and the linter agree before the linter has to run. See
+# ADR-0014.
+#
+# Deliberately absent: `end_of_line` and `charset`. Neither repo sets
+# `style/linebreak-style`, so there is no measured agreement to encode — and
+# ADR-0009 is the ADR about reading silence as consensus.
+
+root = true
+
+[*]
+# style/indent: ["error", 2] — 2, and spaces rather than tabs, in both repos.
+indent_style = space
+indent_size = 2
+
+# style/eol-last: ["error", "always"]
+insert_final_newline = true
+
+# style/no-trailing-spaces, with `skipBlankLines: false`.
+#
+# Safe for Markdown, which is the usual objection — two trailing spaces are a
+# hard line break there. Measured: zero MD009 violations across both repos'
+# authored Markdown, so the convention is not in use and trimming breaks nothing.
+trim_trailing_whitespace = true

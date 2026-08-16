@@ -52,8 +52,16 @@ describe('planSync', () => {
 
 describe('pendingChanges', () => {
   it('selects only the files a sync would actually write', async () => {
+    // Every managed file already correct except the one opted out of, so a sync
+    // has nothing left to do. Derived from `MANAGED_FILES` rather than listed:
+    // spelled out, this test would start passing for the wrong reason the moment
+    // a file was added — the new file would be missing, and "no pending changes"
+    // would be the assertion that failed to notice.
+    const managed = MANAGED_FILES.filter(file => file !== 'axe-linter.yml')
     const root = await project({
-      '.nvmrc': await readTemplate('.nvmrc'),
+      ...Object.fromEntries(
+        await Promise.all(managed.map(async file => [file, await readTemplate(file)] as const)),
+      ),
       'preflight.config.ts': `export default { unmanaged: ['axe-linter.yml'] }\n`,
     })
 
@@ -83,7 +91,7 @@ describe('applySync', () => {
     await applySync(root, await planSync(root))
 
     expect(await readFile(join(root, '.nvmrc'), 'utf8')).toBe('22\n')
-    expect(Object.keys((await readLock(root))!.files)).toEqual(['axe-linter.yml'])
+    expect(Object.keys((await readLock(root))!.files)).toEqual(MANAGED_FILES.filter(file => file !== '.nvmrc'))
   })
 
   it('is a no-op the second time', async () => {
@@ -108,6 +116,6 @@ describe('applySync', () => {
     await writeFile(join(root, 'preflight.config.ts'), `export default { unmanaged: ['.nvmrc'] }\n`)
     await applySync(root, await planSync(root))
 
-    expect(Object.keys((await readLock(root))!.files)).toEqual(['axe-linter.yml'])
+    expect(Object.keys((await readLock(root))!.files)).toEqual(MANAGED_FILES.filter(file => file !== '.nvmrc'))
   })
 })

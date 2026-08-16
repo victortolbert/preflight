@@ -60,7 +60,7 @@ describe('preflight sync', () => {
 
     expect(await readFile(join(root, '.nvmrc'), 'utf8')).toBe('22\n')
     const lock = JSON.parse(await readFile(join(root, LOCK_FILE), 'utf8'))
-    expect(Object.keys(lock.files)).toEqual(['axe-linter.yml'])
+    expect(Object.keys(lock.files)).toEqual(MANAGED_FILES.filter(file => file !== '.nvmrc'))
   })
 
   it('is a no-op the second time', async () => {
@@ -98,7 +98,7 @@ describe('preflight sync', () => {
     await preflight(['sync', '--yes'], root)
 
     const lock = JSON.parse(await readFile(join(root, LOCK_FILE), 'utf8'))
-    expect(Object.keys(lock.files)).toEqual(['axe-linter.yml'])
+    expect(Object.keys(lock.files)).toEqual(MANAGED_FILES.filter(file => file !== '.nvmrc'))
   })
 
   it('regenerates a lock that cannot be read', async () => {

@@ -5,7 +5,7 @@
  * reference and never written into a project, so they cannot be opted out of —
  * a consumer diverges from a preset by composing over it instead (ADR-0004).
  */
-export type ManagedFile = '.nvmrc' | 'axe-linter.yml'
+export type ManagedFile = '.editorconfig' | '.nvmrc' | 'axe-linter.yml'
 
 /** The shape of a project's `preflight.config.ts`. */
 export interface PreflightConfig {

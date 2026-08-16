@@ -83,17 +83,23 @@ one command; the prose does not answer it at all.
   application repo **loses clean status** unless it carries `MD041: false`
   locally — 37 hits without it. Neither repo runs markdownlint in CI and the
   preset does not change that. Consumers' call, both of them.
-- **SPEC §10.7–10.8 remain unmeasured** — editor config and
-  tsconfig/vitest/playwright. Six for six, measuring has moved the item rather
-  than confirming it as written, and in both directions now: §10.5 got **bigger**
-  (headers absent from production, not merely host-specific), §10.6 **dissolved**
-  (no dispute — one repo had never run the tool). "The backlog overstates itself"
-  is the tempting read after a run of shrinking results and it is the wrong one.
-- **§10.7 carries a version cost the others did not.** Editor config would be a
-  *managed file*, which ADR-0010 makes breaking — a `0.4.0`, and both consumers
-  must bump their caret ranges by hand. Every preset so far has been additive and
-  shipped as a patch. Worth knowing before it is picked up on the strength of
-  looking small.
+- **A credential was committed in both consumers' `.vscode/mcp.json`**, found while
+  measuring §10.7 — byte-identical, pushed to both remotes, uxlab since
+  2026-01-23. **Rotated.** This repo was never affected and now ignores the file
+  (#30). Two things remain, both consumer-side: the dead value is still in `HEAD`
+  of both (a normal edit and commit — *not* a history rewrite, which buys nothing
+  once rotated), and neither private repo has secret scanning, which needs the
+  paid add-on. The vendor's endpoint needs **no key at all**, so the block can be
+  deleted rather than replaced.
+- **SPEC §10.8 remains unmeasured** — tsconfig, vitest, playwright. Seven for
+  seven, measuring has moved the item rather than confirming it, and in every
+  direction: §10.5 got **bigger**, §10.6 **dissolved**, §10.7 was **right about
+  the file and wrong about the scope**. "The backlog overstates itself" is the
+  tempting read and it has been wrong three times running.
+- **§10.8 is the one item whose own entry warns about itself** — "version
+  differences change results silently rather than loudly." Given §10.7 found a
+  Python debug profile and a credential riding along in byte-identical files,
+  treat byte-identity as the *start* of a measurement there, not the end of one.
 - **ADR-0006's precondition is one bump of "a few."** Both repos SHA-pin every
   action and both survived the `@antfu/eslint-config` 9.3.0 bump. The clock is
   running and it is the consumers' activity that advances it.
