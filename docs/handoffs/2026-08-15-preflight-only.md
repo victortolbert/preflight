@@ -91,15 +91,22 @@ one command; the prose does not answer it at all.
   once rotated), and neither private repo has secret scanning, which needs the
   paid add-on. The vendor's endpoint needs **no key at all**, so the block can be
   deleted rather than replaced.
-- **SPEC §10.8 remains unmeasured** — tsconfig, vitest, playwright. Seven for
-  seven, measuring has moved the item rather than confirming it, and in every
-  direction: §10.5 got **bigger**, §10.6 **dissolved**, §10.7 was **right about
-  the file and wrong about the scope**. "The backlog overstates itself" is the
-  tempting read and it has been wrong three times running.
-- **§10.8 is the one item whose own entry warns about itself** — "version
-  differences change results silently rather than loudly." Given §10.7 found a
-  Python debug profile and a credential riding along in byte-identical files,
-  treat byte-identity as the *start* of a measurement there, not the end of one.
+- **SPEC §10.1–10.8 are all measured, and not one was confirmed as written.**
+  The table in §10 records what each turned into. §10.3 remains **blocked** on
+  ADR-0006's precondition rather than closed; §10.4 and §10.8 closed with nothing
+  shipped; the other five shipped something.
+- **Items 9 and 10 are the section's remainder, and both moved the wrong way.**
+  `skills-npm` is now installed in *both* consumers and still invoked by nothing —
+  dead config that has acquired a dependency, the hazard ADR-0008 declined to
+  create, arrived by another route. And one application-repo workflow pins Node
+  **22** against `.nvmrc`'s `v24` and its own other workflows' `24`, so Preflight
+  manages a file one CI job actively contradicts. That one is a one-line fix per
+  job (`node-version-file: .nvmrc`) and does not wait on item 3.
+- **Two inert settings in the application repo's `vitest.config.ts`**, found
+  measuring §10.8 and not Preflight's to fix: `teardownTimeout` inside a project
+  block (Vitest's `NonProjectOptions` excludes it — the template has it right, at
+  root, with a comment), and an `include` glob whose `e2e` branch matches zero
+  files because the specs live at `./e2e`.
 - **ADR-0006's precondition is one bump of "a few."** Both repos SHA-pin every
   action and both survived the `@antfu/eslint-config` 9.3.0 bump. The clock is
   running and it is the consumers' activity that advances it.
