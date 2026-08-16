@@ -77,8 +77,11 @@ See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives
 | `.nvmrc` | CLI-written | `v24` |
 | `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` |
 | `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice |
+| `.editorconfig` | CLI-written | indent, final newline, trailing whitespace — derived from eslint |
 
-Every one of these was extracted from the consuming projects rather than chosen, and both CLI-written templates are byte-identical to what those projects already have. `preflight sync` run against either of them writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
+Every one of these was extracted from the consuming projects rather than chosen. For the v1 set that extraction was literal: `.nvmrc` and `axe-linter.yml` are byte-identical to what those projects already have, so `preflight sync` run against either writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
+
+**`.editorconfig` is the exception, and the first managed file that changes something.** Both repos carry one at 0 bytes, so there was nothing to extract from the file — but the agreement it encodes exists in `eslint.config.mjs`, byte-identical in both, and every key is derived from a rule they already enforce. Adopting it therefore writes a real file where an empty one sat, which is why it ships in a breaking release. See [ADR-0014](./docs/adr/0014-the-editor-config-is-derived-from-eslint.md).
 
 **A fourth file was cut during implementation.** `skills-npm.config.ts` looked like shared policy: byte-identical across both projects, and carrying two settings that differ from the tool's own defaults. Reading it settled the matter — it is the tool's README example verbatim, every line of it, with eight lines of placeholder examples deleted. The two "settings" are the README's values. Nothing in either project runs the tool.
 

@@ -5,6 +5,7 @@ import preflightCommitlint from '../src/presets/commitlint'
 import preflightSecurityHeaders from '../src/presets/security-headers'
 import preflightTaze from '../src/presets/taze'
 import preflightVueA11y from '../src/presets/vue-a11y'
+import { MANAGED_FILES } from '../src/templates'
 
 /**
  * The version contract, as assertions rather than prose.
@@ -42,6 +43,16 @@ describe('the version contract — ADR-0010', () => {
       './vue-a11y',
       './package.json',
     ])
+  })
+
+  it('manages exactly these files', () => {
+    // ADR-0010 names adding a managed file as one of its three breaking changes —
+    // it lands as drift in a repo that chose nothing — but until now nothing
+    // pinned the list, so the most expensive change in the contract was the one
+    // change no test could see. Pinned as a literal for the same reason as the
+    // exports map above: derived from `MANAGED_FILES`, this would agree with
+    // whatever that happens to say.
+    expect([...MANAGED_FILES]).toEqual(['.editorconfig', '.nvmrc', 'axe-linter.yml'])
   })
 
   it('requires this Node floor', () => {
