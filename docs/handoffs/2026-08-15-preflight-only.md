@@ -83,6 +83,13 @@ one command; the prose does not answer it at all.
   application repo **loses clean status** unless it carries `MD041: false`
   locally — 37 hits without it. Neither repo runs markdownlint in CI and the
   preset does not change that. Consumers' call, both of them.
+- **`nuxt-kickstart` is now the only validation consumer** (2026-08-16). Preflight
+  work branching in `uxlab` moved HEAD under a concurrent agent session and its
+  work landed on the Preflight branch, needing a cherry-pick back to `develop`.
+  **Do not branch or commit in `uxlab`**; read-only inspection is fine. It stays a
+  consumer and will adopt later. `CONTEXT.md`'s **Validation consumer** entry
+  records the methodological cost: with one repo there is no agreement to measure,
+  so findings are "what `nuxt-kickstart` does" and must say so.
 - **A credential was committed in both consumers' `.vscode/mcp.json`**, found while
   measuring §10.7 — byte-identical, pushed to both remotes, uxlab since
   2026-01-23. **Rotated.** This repo was never affected and now ignores the file
