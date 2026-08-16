@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import preflightMarkdownlint from '../presets/markdownlint.json' with { type: 'json' }
 import pkg from '../package.json' with { type: 'json' }
 import preflightCommitlint from '../src/presets/commitlint'
 import preflightSecurityHeaders from '../src/presets/security-headers'
@@ -35,6 +36,7 @@ describe('the version contract — ADR-0010', () => {
     expect(Object.keys(pkg.exports)).toEqual([
       '.',
       './commitlint',
+      './markdownlint',
       './security-headers',
       './taze',
       './vue-a11y',
@@ -83,6 +85,31 @@ describe('the version contract — preset surfaces', () => {
       'vue-a11y/media-has-caption',
       'vue-a11y/no-autofocus',
     ])
+  })
+
+  it('freezes the markdownlint preset, and the fact that it ships as JSON', () => {
+    // The subpath target matters here in a way it does not for the others.
+    // markdownlint's `extends` silently ignores an ESM module — no error, no
+    // rules applied — so retargeting this subpath at a `.mjs` would leave every
+    // consumer's config resolving and doing nothing. That is a breaking change
+    // wearing the costume of a build tidy-up.
+    expect(pkg.exports['./markdownlint']).toBe('./presets/markdownlint.json')
+    expect(Object.keys(preflightMarkdownlint).sort()).toEqual([
+      'MD013',
+      'MD024',
+      'MD025',
+      'MD033',
+      'MD036',
+      'MD040',
+      'MD060',
+    ])
+  })
+
+  it('ships the directory that preset lives in', () => {
+    // It sits outside `dist`, so `files` has to carry it explicitly or the
+    // subpath resolves locally and 404s from the registry — SPEC §12's
+    // characteristic first-publish failure.
+    expect(pkg.files).toContain('presets')
   })
 
   it('freezes the security-headers preset', () => {

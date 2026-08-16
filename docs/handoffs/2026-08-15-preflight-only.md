@@ -78,11 +78,22 @@ one command; the prose does not answer it at all.
 - **A release is needed before either consumer can adopt.** `0.3.0` is published;
   the preset is on `main` and nowhere else. §10.5's deliverable is inert until
   then, unlike every v1 file, which changed nothing on adoption by design.
-- **SPEC §10.6–10.8 remain unmeasured** — markdownlint, editor config, and
-  tsconfig/vitest/playwright. Five for five, measuring has moved the item rather
-  than confirming it as written, and §10.5 moved it in the direction the previous
-  four did not: **it got bigger.** Four consecutive shrinking results make "the
-  backlog overstates itself" the tempting read, and it is the wrong one.
+- **Adopting the markdownlint preset changes both consumers, oppositely.** The
+  template goes from 281 standing hits to 5 (after `markdownlint --fix`); the
+  application repo **loses clean status** unless it carries `MD041: false`
+  locally — 37 hits without it. Neither repo runs markdownlint in CI and the
+  preset does not change that. Consumers' call, both of them.
+- **SPEC §10.7–10.8 remain unmeasured** — editor config and
+  tsconfig/vitest/playwright. Six for six, measuring has moved the item rather
+  than confirming it as written, and in both directions now: §10.5 got **bigger**
+  (headers absent from production, not merely host-specific), §10.6 **dissolved**
+  (no dispute — one repo had never run the tool). "The backlog overstates itself"
+  is the tempting read after a run of shrinking results and it is the wrong one.
+- **§10.7 carries a version cost the others did not.** Editor config would be a
+  *managed file*, which ADR-0010 makes breaking — a `0.4.0`, and both consumers
+  must bump their caret ranges by hand. Every preset so far has been additive and
+  shipped as a patch. Worth knowing before it is picked up on the strength of
+  looking small.
 - **ADR-0006's precondition is one bump of "a few."** Both repos SHA-pin every
   action and both survived the `@antfu/eslint-config` 9.3.0 bump. The clock is
   running and it is the consumers' activity that advances it.

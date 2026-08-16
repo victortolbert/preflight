@@ -32,6 +32,7 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./commitlint": "./dist/presets/commitlint.mjs",
+    "./markdownlint": "./presets/markdownlint.json",
     "./security-headers": "./dist/presets/security-headers.mjs",
     "./taze": "./dist/presets/taze.mjs",
     "./vue-a11y": "./dist/presets/vue-a11y.mjs",
@@ -39,6 +40,7 @@
   },
   "files": [
     "dist",
+    "presets",
     "templates"
   ],
   "engines": {

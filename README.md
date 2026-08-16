@@ -138,6 +138,25 @@ The rule worth having is `label-has-for`. The stock default demands *both* nesti
 
 Adopting this is **not** the no-op the v1 files were. A repo that currently disables `label-has-for` will see real violations on first run — that is the preset working, not a defect.
 
+## Markdown rules
+
+Seven `markdownlint` rules, consumed through markdownlint's own `extends`:
+
+```json
+{
+  "extends": "@victortolbert/preflight/markdownlint",
+  "MD041": false
+}
+```
+
+Note the `extends`, as with commitlint — and here it is the *only* option. markdownlint auto-discovers no JavaScript config form, and `extends` pointing at an ESM module is **silently ignored**: no error, no rules applied. So this preset ships as JSON, and a local key on the same object overrides the preset, which is how a repo declares divergence at the point of divergence.
+
+**Seven rules, though one consuming repo carries nine and the other twenty-one.** A rule ships only if it fires in *both* repos under stock defaults **and** survives `markdownlint --fix`. The second half matters more than it sounds: 26% of the template's violations are auto-fixable, and `MD034` — disabled in both repos — is fixable to **zero**. Disabling it is a decision to keep bare URLs rather than run the fixer once.
+
+**The overlap between the two configs is not agreement.** One repo's config is calibrated — its nine suppressions are exactly the nine rules that fire, and it exits clean. The other's has never been run: nine of its twenty-one entries silence rules that fire nowhere, five rules fire that it does not silence, and nothing in the repo invokes markdownlint at all. These files are carried between projects and edited, so the shared entries are inheritance rather than consensus. See [ADR-0013](./docs/adr/0013-markdownlint-ships-seven-rules-as-json-via-extends.md).
+
+`MD013` is disabled rather than tuned, and that was measured rather than assumed — at `line_length: 160` with tables and code blocks excluded it still leaves 1,292 standing violations in one repo. A rule nobody can get to zero is a permanent red, not a guard.
+
 ## Security headers
 
 Three response headers, spread into Nitro's `routeRules`:
