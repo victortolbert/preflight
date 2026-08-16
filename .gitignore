@@ -2,3 +2,15 @@ node_modules
 dist
 *.tgz
 .DS_Store
+
+# Editor MCP config carries credentials inline — an API key sat in this file,
+# committed, in both consuming repos for months (uxlab from 2026-01-23,
+# nuxt-kickstart from its initial commit). It never reached this repo, which
+# tracks no `.vscode/` at all, and this keeps it that way: the file is the kind
+# a `git add -A` picks up without anyone reading it.
+#
+# GitHub push protection is enabled here but would not have caught that key —
+# it matches known vendors' formats, and the vendor was not one. "Scan for
+# non-provider patterns" is the setting that covers unrecognised formats, and it
+# cannot be toggled through the API.
+.vscode/mcp.json
