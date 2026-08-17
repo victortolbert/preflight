@@ -43,4 +43,4 @@ Use these as written; they carry precise meanings in this project:
 
 If your output contradicts an existing ADR — or `SPEC.md` — surface it explicitly rather than silently overriding:
 
-> _Contradicts SPEC §2 (five-file scope) — but worth reopening because…_
+> *Contradicts SPEC §2 (five-file scope) — but worth reopening because…*
