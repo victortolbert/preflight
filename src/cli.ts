@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-import type { CheckState } from './check'
+import type { CheckedFile, CheckState } from './check'
 import type { ManagedPlan } from './sync'
 import process from 'node:process'
 import { confirm, isCancel } from '@clack/prompts'
 import { cac } from 'cac'
 import { createPatch } from 'diff'
 import pc from 'picocolors'
-import { checkProject, driftedFiles } from './check'
+import { checkProject, driftedFiles, notAdoptedFiles } from './check'
 import { applySync, pendingChanges, planSync } from './sync'
 
 /**
@@ -100,6 +100,10 @@ const report: Record<CheckState, { label: string, advice?: string }> = {
     // previous one. Both remedies read correctly whichever way the file got here.
     advice: 'run `preflight sync` to take Preflight\'s version, or add it to `unmanaged` in preflight.config.ts to keep yours',
   },
+  'not-adopted': {
+    label: pc.red('not adopted'),
+    advice: 'this project has no preflight-lock.json — run `preflight sync` to adopt, or add it to `unmanaged` in preflight.config.ts to keep yours',
+  },
   'upstream-moved': {
     label: pc.cyan('sync available'),
     advice: 'Preflight ships a newer version — run `preflight sync` to take it',
@@ -121,8 +125,9 @@ async function check(projectRoot: string): Promise<number> {
   }
 
   const drifted = driftedFiles(checked)
+  const notAdopted = notAdoptedFiles(checked)
 
-  if (drifted.length === 0) {
+  if (drifted.length + notAdopted.length === 0) {
     console.log(pc.green('\nNo drift.'))
     return 0
   }
@@ -130,7 +135,17 @@ async function check(projectRoot: string): Promise<number> {
   // SPEC §6: CI is the only gate that cannot be skipped and that sees every
   // change, and warn-only was rejected as functionally identical to the status
   // quo. This exit code is the whole enforcement mechanism.
-  console.error(pc.red(`\n${drifted.length} managed file(s) drifted: ${drifted.map(({ file }) => file).join(', ')}`))
+  //
+  // Summarised separately because they are different news. A repo mid-migration
+  // is told it has not adopted yet; a repo that has adopted is told what moved.
+  // Both still exit 1 — ADR-0016 changed the wording, deliberately not the gate.
+  const names = (files: readonly CheckedFile[]): string => files.map(({ file }) => file).join(', ')
+
+  if (notAdopted.length > 0)
+    console.error(pc.red(`\n${notAdopted.length} managed file(s) not adopted: ${names(notAdopted)}`))
+
+  if (drifted.length > 0)
+    console.error(pc.red(`\n${drifted.length} managed file(s) drifted: ${names(drifted)}`))
 
   return 1
 }

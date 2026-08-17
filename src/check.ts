@@ -29,6 +29,22 @@ export type CheckState =
    */
   | 'drifted'
   /**
+   * This project has never synced, and a managed file does not match.
+   *
+   * Fails, exactly as {@link CheckState.drifted} does — the exit code is the
+   * same and ADR-0010's reasoning for it is unchanged: a project with no lock
+   * has not been set up, so a managed file that is absent or different is worth
+   * failing on rather than waving through.
+   *
+   * It is a separate state only because calling it *drift* is wrong, and wrong
+   * in a way that misleads the one audience that meets it. CONTEXT.md defines
+   * drift as divergence in a managed file *that has not been declared*, which
+   * presumes an agreement to diverge from. A repo mid-migration never made one.
+   * "drift" in its CI reads as *you broke something*; what happened is *you have
+   * not adopted yet*. See ADR-0016.
+   */
+  | 'not-adopted'
+  /**
    * Local matches the lock, but Preflight now ships something else.
    *
    * News, not a violation. Failing here would mean every Preflight release broke
@@ -59,14 +75,31 @@ export interface CheckedFile {
   readonly state: CheckState
 }
 
-/** The files that diverged without the project saying so — the whole of what fails CI. */
+/** The files that diverged without the project saying so. */
 export function driftedFiles(checked: readonly CheckedFile[]): CheckedFile[] {
   return checked.filter(({ state }) => state === 'drifted')
 }
 
-/** Whether {@link driftedFiles} found anything. */
-export function hasDrift(checked: readonly CheckedFile[]): boolean {
-  return driftedFiles(checked).length > 0
+/** The managed files a project that has never synced does not match. */
+export function notAdoptedFiles(checked: readonly CheckedFile[]): CheckedFile[] {
+  return checked.filter(({ state }) => state === 'not-adopted')
+}
+
+/**
+ * Everything that fails the check.
+ *
+ * Deliberately not called `driftedFiles`, which it used to be. The two states
+ * here fail identically and mean different things, and collapsing them under
+ * drift's name would put CONTEXT.md's vocabulary error into the API itself —
+ * the same error ADR-0016 fixes in the output.
+ */
+export function failingFiles(checked: readonly CheckedFile[]): CheckedFile[] {
+  return [...driftedFiles(checked), ...notAdoptedFiles(checked)]
+}
+
+/** Whether {@link failingFiles} found anything. */
+export function hasFailures(checked: readonly CheckedFile[]): boolean {
+  return failingFiles(checked).length > 0
 }
 
 /**
@@ -109,7 +142,9 @@ export async function checkProject(projectRoot: string): Promise<CheckedFile[]> 
       if (current === undefined && lock !== undefined)
         return { file, state: 'unrecorded' }
 
-      return { file, state: 'drifted' }
+      // No lock file at all: this project has never synced, so there is no
+      // agreement here to have diverged from. Same failure, honest name.
+      return { file, state: lock === undefined ? 'not-adopted' : 'drifted' }
     }
 
     if (current === undefined || hashContents(current) !== locked)
