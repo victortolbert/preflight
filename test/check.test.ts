@@ -2,7 +2,7 @@ import type { ManagedFile } from '../src/index'
 import { rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { checkProject, hasDrift } from '../src/check'
+import { checkProject, driftedFiles, failingFiles, hasFailures, notAdoptedFiles } from '../src/check'
 import { hashContents, LOCK_VERSION, writeLock } from '../src/lock'
 import { applySync, planSync } from '../src/sync'
 import { MANAGED_FILES, readTemplate } from '../src/templates'
@@ -44,7 +44,7 @@ describe('checkProject — SPEC §6\'s three states', () => {
     await sync(root)
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'in-sync' })
-    expect(hasDrift(await checkProject(root))).toBe(false)
+    expect(hasFailures(await checkProject(root))).toBe(false)
   })
 
   it('reports a local edit as drift', async () => {
@@ -53,7 +53,7 @@ describe('checkProject — SPEC §6\'s three states', () => {
     await writeFile(join(root, '.nvmrc'), '22\n', 'utf8')
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    expect(hasFailures(await checkProject(root))).toBe(true)
   })
 
   it('reports an upstream move without calling it drift', async () => {
@@ -61,7 +61,7 @@ describe('checkProject — SPEC §6\'s three states', () => {
     const root = await lockedProject({ '.nvmrc': '22\n' })
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'upstream-moved' })
-    expect(hasDrift(await checkProject(root))).toBe(false)
+    expect(hasFailures(await checkProject(root))).toBe(false)
   })
 })
 
@@ -72,7 +72,7 @@ describe('checkProject — the state SPEC §6\'s table omits', () => {
     await writeFile(join(root, '.nvmrc'), '20\n', 'utf8')
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    expect(hasFailures(await checkProject(root))).toBe(true)
   })
 })
 
@@ -88,14 +88,14 @@ describe('checkProject — no lock entry', () => {
     const root = await unrecordedProject()
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'unrecorded' })
-    expect(hasDrift(await checkProject(root))).toBe(false)
+    expect(hasFailures(await checkProject(root))).toBe(false)
   })
 
   it('fails a file that differs, because nothing declared that divergence', async () => {
     const root = await unrecordedProject({ '.nvmrc': '22\n' })
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    expect(hasFailures(await checkProject(root))).toBe(true)
   })
 
   it('fails a project that never synced at all', async () => {
@@ -103,7 +103,35 @@ describe('checkProject — no lock entry', () => {
     // manages — so adding the CI step without ever running sync does not sit green.
     const root = await project()
 
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    expect(hasFailures(await checkProject(root))).toBe(true)
+  })
+
+  it('calls a never-synced project not-adopted rather than drifted', async () => {
+    // ADR-0016. The gate is unchanged — this still fails — but a repo that has
+    // never adopted has no agreement to have diverged from, and CONTEXT.md
+    // defines drift as divergence from one. Naming it drift tells a repo
+    // mid-migration it broke something, when it has simply not adopted yet.
+    const root = await project()
+
+    await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'not-adopted' })
+    expect(hasFailures(await checkProject(root))).toBe(true)
+    expect(driftedFiles(await checkProject(root))).toHaveLength(0)
+  })
+
+  it('keeps drift and not-adopted apart, and fails on either', async () => {
+    // The distinction has to survive the two arriving together, because the
+    // summary lines report them separately.
+    const notAdopted = await checkProject(await project())
+    const drifted = await checkProject(await unrecordedProject({ '.nvmrc': '22\n' }))
+
+    expect(notAdoptedFiles(notAdopted)).not.toHaveLength(0)
+    expect(driftedFiles(notAdopted)).toHaveLength(0)
+
+    expect(driftedFiles(drifted)).not.toHaveLength(0)
+    expect(notAdoptedFiles(drifted)).toHaveLength(0)
+
+    expect(failingFiles(notAdopted).length + failingFiles(drifted).length)
+      .toBe(notAdoptedFiles(notAdopted).length + driftedFiles(drifted).length)
   })
 
   it('treats a file Preflight started managing after the last sync as news, not drift', async () => {
@@ -122,7 +150,7 @@ describe('checkProject — no lock entry', () => {
     })
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'unrecorded' })
-    expect(hasDrift(await checkProject(root))).toBe(false)
+    expect(hasFailures(await checkProject(root))).toBe(false)
   })
 
   it('still fails an absent file when the project has never synced', async () => {
@@ -131,8 +159,8 @@ describe('checkProject — no lock entry', () => {
     // been set up, and that is worth failing on rather than reporting.
     const root = await project()
 
-    await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'not-adopted' })
+    expect(hasFailures(await checkProject(root))).toBe(true)
   })
 })
 
@@ -143,7 +171,7 @@ describe('checkProject — a missing managed file', () => {
     await rm(join(root, '.nvmrc'))
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'drifted' })
-    expect(hasDrift(await checkProject(root))).toBe(true)
+    expect(hasFailures(await checkProject(root))).toBe(true)
   })
 })
 
@@ -155,6 +183,6 @@ describe('checkProject — unmanaged', () => {
     await writeFile(join(root, 'preflight.config.ts'), `export default { unmanaged: ['.nvmrc'] }\n`)
 
     await expect(states(root)).resolves.toMatchObject({ '.nvmrc': 'unmanaged' })
-    expect(hasDrift(await checkProject(root))).toBe(false)
+    expect(hasFailures(await checkProject(root))).toBe(false)
   })
 })

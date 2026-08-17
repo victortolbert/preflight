@@ -314,7 +314,13 @@ Deliberately never scoped by the planning effort, and likely to arise early in i
 
 - ~~**How Preflight proves it works.**~~ **Resolved** — see §12. It was two questions wearing one name. The self-test half is settled there; the other half turned out to be a non-question: there is no notion of "Preflight-compliant" beyond what `preflight check` already asserts. See [ADR-0002](./docs/adr/0002-compliance-is-exactly-preflight-check.md).
 - **Whether the source template survives** — rebased onto Preflight, or retired.
-- **Migration for partially-adopted repos** — several projects carry a subset of the tooling.
+- ~~**Migration for partially-adopted repos** — several projects carry a subset of the tooling.~~ **Resolved by measuring, and it wanted no CLI surface.** The sentence was true and counted nothing: 8 of the 31 repos in `~/Projects` carry at least one managed file with Preflight uninstalled. Opening them splits that into three groups — **two real candidates** (`cwds`, `ams-cloud-eds`: active, pnpm, eslint, commitlint, Nuxt, structurally indistinguishable from the repos already onboarded), **two active npm repos with no Vue** for which most presets are inert, and **four that are not candidates** — three untouched since 2023–2024. So this is not a feature; it is two adoptions.
+
+    What measuring did add, in the direction §10.5 did rather than §10.6: **not one of the eight matches what Preflight ships on any file it carries**, so zero would land in `unrecorded` — the benign state SPEC §2's adoption dividend depends on. Adoption was a no-op in the two consuming repos by construction, and is a no-op nowhere else.
+
+    Running a real migration rather than reasoning about one found the mechanism sufficient — `sync` diffs before writing and refuses without confirmation, and `unmanaged` expresses "keep mine" — and found exactly one defect, which was vocabulary: `check` called a never-adopted repo's files **drift**, a word [`CONTEXT.md`](./CONTEXT.md) defines as divergence *from a declared agreement*, which a migrating repo has never made. Fixed as a `not-adopted` state with the exit code deliberately unchanged. See [ADR-0016](./docs/adr/0016-migration-needs-no-new-cli-surface.md), which also records why the per-file `sync` prompt is **not** contract surface — the sentence that lets 1.0.0 proceed without building it — and [ADR-0014](./docs/adr/0014-the-editor-config-is-derived-from-eslint.md)'s addendum, where a third repo answered two questions that ADR had read as silence.
+
+    **This closes [ADR-0010](./docs/adr/0010-the-version-contract.md)'s gate on 1.0.0.**
 
 ---
 
