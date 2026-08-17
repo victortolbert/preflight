@@ -1,0 +1,10 @@
+# Markdownlint ignore (gitignore syntax). Lints authored prose only.
+#
+# Needed for `lint:md` to be runnable at all: without it `markdownlint .` walks
+# node_modules, which is thousands of dependency READMEs against 26 authored
+# files. ADR-0013 measured which rules to ship and never asked whether the
+# command could be run at all; adopting the preset here is where that surfaced.
+
+node_modules/
+dist/
+coverage/

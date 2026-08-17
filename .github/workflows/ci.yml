@@ -74,6 +74,38 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
+      # Preflight lints its own Markdown with the preset it ships, for the same
+      # reason the commitlint step above exists: a preset this repo publishes and
+      # never runs is a rule set nobody has tested against real prose. ADR-0013
+      # measured which rules to ship against the two consumers and never against
+      # this repo, which is 26 authored files of exactly the documentation-heavy
+      # kind the preset is for.
+      #
+      # `.markdownlint.json` extends `./presets/markdownlint.json` by relative
+      # path rather than the `@victortolbert/preflight/markdownlint` subpath, for
+      # the reason `commitlint.config.ts` gives: consuming the subpath would need
+      # the package installed into itself. `test/stability.test.ts` already
+      # asserts the shipped subpath resolves to that same file.
+      #
+      # Two local rules, neither of them shippable:
+      #
+      #   MD049 `style: asterisk` — the preset leaves this at the default
+      #   `consistent`, which is per-FILE and so blesses a repo whose files
+      #   disagree with each other. Measured here: 26 violations under asterisk
+      #   against 252 under underscore, so asterisk is this repo's convention by
+      #   an order of magnitude. That is a fact about this repo, not about the
+      #   consumers, so it stays local — ADR-0013's criterion governs the preset.
+      #
+      #   MD029 — disabled inline in SPEC.md only, around backlog items 9 and 10.
+      #   Worth knowing: that rule is auto-fixable and its fix is DESTRUCTIVE.
+      #   `markdownlint --fix` silently renumbers those to 1 and 2, breaking every
+      #   "§10.9"/"§10.10" citation in the SPEC, the ADRs and the handoffs.
+      #   ADR-0013's shipping criterion uses "survives `--fix`" as a proxy for
+      #   "worth disabling"; this is the case that shows fixable does not mean
+      #   safe to fix.
+      - name: Lint Markdown
+        run: pnpm run lint:md
+
       # Issue #1 asks for build → packaging checks → tests, which inverts the
       # order SPEC §12 lists the layers in. Deliberate: packaging is the layer
       # unit and integration tests cannot substitute for — a missing `files`

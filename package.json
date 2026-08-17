@@ -49,6 +49,8 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
+    "lint:md": "markdownlint .",
+    "lint:md:fix": "markdownlint --fix .",
     "test": "vitest run",
     "check:packaging": "publint --strict && attw --pack . --profile esm-only",
     "release": "bumpp",
@@ -73,6 +75,7 @@
     "@types/node": "^24.10.1",
     "bumpp": "^12.1.1",
     "es-module-lexer": "^2.3.1",
+    "markdownlint-cli": "^0.49.1",
     "publint": "^0.3.14",
     "taze": "19.17.1",
     "tsdown": "^0.22.14",
