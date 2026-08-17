@@ -194,11 +194,13 @@ Nothing to install, and unlike every other preset here this one is **not** a no-
 
 Covered by that promise: the `exports` map, preset values, CLI commands and flags, exit codes, the `PreflightConfig` and `ManagedFile` types, and the engine floor. The `preflight-lock.json` format is **internal** — Preflight generates it, nothing else reads it, and freezing it would price a format improvement at a major bump.
 
-**While this package is 0.x, breaking changes go in the minor slot** — `0.4.0`, not `0.3.1`. A caret range is therefore safe as it stands: `^0.3.0` resolves `>=0.3.0 <0.4.0`, so no breaking change reaches you without a deliberate bump, patch releases included.
+**Breaking changes go in the major slot.** `^1.0.0` admits every `1.x`, so a minor or a patch reaches you automatically — which is safe precisely because "additive" is defined above as *cannot newly fail your build*, and the three deceptive cases are treated as breaking rather than additive.
 
-**1.0.0 ships when migration for partially-adopted repos is settled** (SPEC §11). That is the one open question that could still change the CLI surface, and 1.0.0 is a claim that it won't.
+Until `1.0.0` this worked differently: breaking went in the *minor* slot (`0.4.0`, not `0.3.1`), because minors do not flow under a `0.x` caret. If you are still on a `^0.x` range, that is what your range promises, and moving to `^1.0.0` is a deliberate bump.
 
-The covered surfaces are pinned in `test/stability.test.ts`, so a breaking change fails CI before it can be published rather than after. See [ADR-0010](./docs/adr/0010-the-version-contract.md).
+**1.0.0 shipped once migration for partially-adopted repos was settled** (SPEC §11) — that was the one open question that could still have moved the CLI surface, and this version is the claim that it won't. It resolved by measuring rather than by building: see [ADR-0016](./docs/adr/0016-migration-needs-no-new-cli-surface.md).
+
+The covered surfaces are pinned by tests, so a breaking change fails CI before it can be published rather than after — the exports map, managed-file list, engine floor and preset values in `test/stability.test.ts`, and the CLI's exit codes in `test/cli-check.test.ts` and `test/cli-sync.test.ts`. See [ADR-0010](./docs/adr/0010-the-version-contract.md).
 
 ## License
 
