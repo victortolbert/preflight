@@ -11,6 +11,8 @@ The setup and safeguards a project should have **before** feature development be
 pnpm add -D @victortolbert/preflight
 ```
 
+**Requires Node 24 or newer** — the package sets `engines: >=24`. Both projects Preflight was extracted from were already on 24, so the no-op adoption described below was measured on repos that met this by default. For a repo that does not, adopting Preflight is a Node major upgrade first and a config exercise second — which is what the first repo Preflight was *not* extracted from actually cost. Any claim that adoption is cheap should be checked against the adopting repo's `.nvmrc` before it is made.
+
 ## The problem
 
 Most "starter template" approaches are copy-once: you scaffold a project, and from that moment the template and the project diverge with nothing able to detect it.
