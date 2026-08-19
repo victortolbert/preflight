@@ -54,3 +54,11 @@ The package page on npmjs.com should also show the green **Provenance** panel, n
 - **Publish without matching versions.** A tag whose version disagrees with `package.json` stops the run. `bumpp` cannot produce that state; a hand-pushed tag can, and npm never reissues a version number.
 - **Publish a broken artifact.** `publint` and `@arethetypeswrong/cli` run before `npm publish`, not after.
 - **Publish with an npm too old for OIDC.** Trusted publishing needs npm ≥ 11.5.1. `.nvmrc` says `24`, which resolves to the newest 24.x and satisfies that today — but 24.0.0 through 24.4.1 shipped npm 11.3.0 or 11.4.2, so pinning `.nvmrc` to a patch could reintroduce it. The workflow fails with that explanation rather than installing a newer npm, which would put an unpinned package in the one job holding publish rights.
+
+## GitHub Releases are created by hand, deliberately
+
+All nine tags have a GitHub Release, backfilled on 2026-08-17 with notes taken verbatim from [`CHANGELOG.md`](../CHANGELOG.md). `0.1.0` has none and should not: it has no tag, because it was the by-hand publish that had to exist before trusted publishing could be configured.
+
+**Nothing automates this, and that is a trade rather than an omission.** `release.yml` publishes to npm and has no release-creating step. Adding one means raising that job from `contents: read` to `contents: write` — and it is the one job holding `id-token: write`. [ADR-0001](./adr/0001-build-and-release-toolchain.md) chose OIDC specifically to keep that job's surface small, so widening it to save a manual step trades the thing the design was for against a convenience. Leave it manual, or widen the permission as a decision someone made on purpose.
+
+One trap when writing the notes by hand: **relative links in `CHANGELOG.md` do not survive the copy.** A release page is not served from the repo root, so `./docs/adr/…` 404s there. Rewrite them to absolute blob URLs.
