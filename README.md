@@ -71,13 +71,20 @@ See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives
 
 ## What is actually in it
 
-| File | Mechanism | What it carries |
-|---|---|---|
-| `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` |
-| `.nvmrc` | CLI-written | `v24` |
-| `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` |
-| `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice |
-| `.editorconfig` | CLI-written | indent, final newline, trailing whitespace — derived from eslint |
+| File | Mechanism | What it carries | What reads it |
+|---|---|---|---|
+| `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` | `taze`, a devDependency, via your own update script |
+| `.nvmrc` | CLI-written | `v24` | `actions/setup-node`, via `node-version-file` |
+| `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` | **an editor extension — see below** |
+| `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice | `commitlint`, via the `commit-msg` hook |
+| `.editorconfig` | CLI-written | indent, final newline, trailing whitespace — derived from eslint | **an editor extension — see below** |
+
+**The last column is a rule, not a courtesy: a managed file ships only if Preflight can name what reads it.** Two of these are read by an editor extension whose presence a repo cannot confirm, and Preflight does not check for either — so this is where you find out, before adopting rather than after.
+
+- **`axe-linter.yml` needs `deque-systems.vscode-axe-linter`.** axe Linter also ships a GitHub Action and a CI Connector that read the same file, but neither is used in any repo here, so in practice the extension is its only reader. Without it, `preflight sync` writes a configuration file nothing reads — which is the failure this package exists to catch, so it is worth adding the recommendation to `.vscode/extensions.json` when you adopt.
+- **`.editorconfig` needs `EditorConfig.EditorConfig` in VS Code**, which has no built-in support. Its keys are derived from eslint rules you are already enforcing, so the policy survives the extension's absence even though the file does nothing.
+
+See [ADR-0017](./docs/adr/0017-a-managed-file-must-name-what-reads-it.md) for why both ship anyway rather than being cut.
 
 Every one of these was extracted from the consuming projects rather than chosen. For the v1 set that extraction was literal: `.nvmrc` and `axe-linter.yml` are byte-identical to what those projects already have, so `preflight sync` run against either writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
 

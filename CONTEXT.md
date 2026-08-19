@@ -35,4 +35,5 @@ The single repo Preflight is currently measured against — **`nuxt-kickstart`**
 
 **Dead config**:
 A configuration file whose tool is not installed, or is installed but invoked by nothing. It is byte-identical everywhere it appears, which reads as consensus and is inertia. Dead config cannot drift, so its stability is not evidence of anything.
+A file whose only reader is an editor extension is dead by this definition too, and `axe-linter.yml` is: a `.vscode/extensions.json` recommendation is not an installation, since acceptance is per-developer and leaves no trace in the repo. It ships anyway, which is why a managed file must name what reads it — see [ADR-0017](./docs/adr/0017-a-managed-file-must-name-what-reads-it.md).
 *Avoid*: orphaned config, legacy config
