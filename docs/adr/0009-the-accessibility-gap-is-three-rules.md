@@ -87,3 +87,34 @@ That is a smaller deliverable than rank 1 implied, and a better-founded one. The
 **What would change the answer.** The template growing content that trips the other ten rules, which would turn silence into a position and give those rules something to agree or disagree about. Failing that, a second application-shaped consumer would test whether the thirteen describe `uxlab` or describe applications generally — the current sample cannot distinguish those.
 
 **A method note, since this ADR is the third instance.** SPEC §247 already warns that the v2 ordering "was reasoned, not measured," citing item 3. Item 1 has now moved too — not reversed like item 3, and not merely rescoped like item 2, but *reinterpreted*: the same 233 violations support "thirteen live suppressions" or "three shareable rules plus a rule bug" depending on whether the hits are resolved to their attribute values. Counting was not enough here; the count had to be read one hit at a time. The remaining backlog items were ordered by the same unmeasured method.
+
+## Addendum, 2026-08-19 — the trigger is available, and the tuning has a residue this ADR did not measure
+
+*What would change the answer* above names two triggers. One of them has fired.
+
+**A second application-shaped consumer exists.** `ams-cloud-eds` adopted Preflight at `1.0.0` and spreads this preset into its `vue` overrides. It is the first repo Preflight was not extracted from, and unlike `uxlab` it does not descend from `nuxt-kickstart`, so it is the first opportunity to distinguish "describes `uxlab`" from "describes applications generally."
+
+**That opportunity is unexercised, deliberately.** Answering it means stripping the overrides, running eslint and resolving each hit to the attribute that caused it — the method this ADR's own conclusion turned on, where 87 of 233 hits were a rule firing on `aria-hidden="false"` and counting alone would have missed it. That has not been done against `ams-cloud-eds`. The trigger is recorded as available so the question stays askable; nothing here answers it, and no count is claimed.
+
+What adoption did produce is one measurement about the one rule this ADR tuned.
+
+**The tuned rule is not silent in a component-library repo, and the residue is not the documented false positive.** `ams-cloud-eds` had `label-has-for` turned off entirely, with a comment blaming for/id sibling association — the same reasoning this ADR measured and rejected. Under the shipped `required: { some: ['nesting', 'id'] }`, exactly **one** violation survived: a `<label>` wrapping a Nuxt UI `<USelect>`.
+
+**It is a third option this preset leaves at its default, not a limitation of the rule.** Read from `eslint-plugin-vuejs-accessibility@2.6.0` rather than inferred:
+
+```js
+// dist/rules/label-has-for.js — validateNesting
+controlTypes.concat(controlComponents).includes(getElementType(child))
+```
+
+`controlTypes` is `["input", "meter", "progress", "select", "textarea"]`, and `getElementType` kebab-cases the raw tag name, so `<USelect>` resolves to `u-select` and matches nothing. But `controlComponents` is a first-class rule option, kebab-cased on the way in — `controlComponents: ['USelect']` makes the wrapped control pass on `nesting`.
+
+So the rule exposes three options that bear on this — `components`, `controlComponents` and `required` — and this ADR tuned one. The claim that the tuning "removes exactly the false positives" was measured against two repos that wrap native controls; in a repo that wraps library components, one class of false positive remains and the option that addresses it was never set.
+
+**Whether the preset should set it is left open, and is not a small question.** `controlComponents` takes literal component names, so setting it means Preflight naming a specific component library — [ADR-0012](./0012-security-headers-are-reclaimed-as-route-rules.md)'s shape, where a preset stopped being framework-independent and SPEC §3's claim narrowed. One repo wanting `USelect` is not evidence that Preflight should carry Nuxt UI's component list, and a preset that names components it cannot verify are controls would be asserting something it has not measured.
+
+**The same mechanism appears in the other accessibility tool Preflight ships, unused.** `templates/axe-linter.yml` carries a commented-out `global-components:` key — Deque's documented answer to the identical problem, *"Lint `<AxeButton>` as though it was a `<button>`"*. Two tools, the same blind spot, the same remedy, and Preflight sets neither.
+
+**How it was resolved in the adopting repo**, which is a consumer's decision and not this package's: an explicit `for`/`id` pair, after confirming `USelect` binds `:id` to its trigger element, so the fix associates the label at runtime rather than only satisfying eslint.
+
+**What would change the answer here.** A second repo hitting the same residue — that would make it a property of component-library repos rather than of `ams-cloud-eds`, and would be the first evidence that `controlComponents` belongs in the preset. Failing that, the honest position is that the shipped tuning is right for the repos it was measured against and incomplete for repos it was not.
