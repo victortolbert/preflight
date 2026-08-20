@@ -43,8 +43,9 @@ const preflightCommitlint = {
      * `content` is a real type in these repos, not a slip: 11 commits between
      * 2026-01-23 and 2026-06-22 in the application repo, which is
      * content-driven. Every *other* off-enum type in the same history is a
-     * single day's burst — `deps`, `cwds`, `prd`, `config`, `assets` — or a
-     * bare typo (`i`), and those are what this rule is for. Widening the enum
+     * single day's burst — `deps`, `prd`, `config`, `assets`, and one
+     * project slug — or a bare typo (`i`), and those are what this rule is
+     * for. Widening the enum
      * to admit them all would leave nothing enforced; widening it by exactly
      * one keeps the rule catching the eleven it should.
      */
