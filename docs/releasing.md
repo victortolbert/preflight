@@ -16,9 +16,11 @@ pnpm exec bumpp 0.4.0 --yes
 
 **Not `pnpm run release -- 0.4.0 --yes`.** That form does not forward the flags, so `bumpp` still prompts and the caller hangs waiting on a question it cannot see.
 
-There is no credential to rotate — see [ADR-0001](./adr/0001-build-and-release-toolchain.md). Before the first automated release, though, there is setup that can only happen once the package exists.
+There is no credential to rotate — see [ADR-0001](./adr/0001-build-and-release-toolchain.md).
 
-## One-time setup
+## One-time setup — **done, and kept for the record**
+
+> Trusted publishing was configured against the package after the manual `0.1.0`, and every release since has gone out through it. Nothing below needs doing again. It is kept because it would all have to be repeated if the package were ever recreated under a new name, and because the ordering constraint took checking to establish.
 
 The workflow authenticates by [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), which mints a short-lived OIDC token per run instead of reading a stored secret. That has to be configured once against the package, on npmjs.com.
 
