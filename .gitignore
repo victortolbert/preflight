@@ -6,4 +6,9 @@ dist
 # Editor MCP config carries credentials inline, and it is the kind of file a
 # `git add -A` picks up without anyone reading it. This repo tracks no
 # `.vscode/` at all, and this keeps it that way.
+#
+# Push protection is enabled here and would not be enough on its own: it matches
+# known vendors' formats, so an unrecognised one passes. "Scan for non-provider
+# patterns" is the setting that covers those, and it cannot be toggled through
+# the API. This entry is the control that does not depend on that.
 .vscode/mcp.json

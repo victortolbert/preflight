@@ -74,7 +74,7 @@ const preflightCommitlint = {
      * The rule cannot tell a leading acronym from Sentence Case, and this
      * project writes acronym-initial subjects that are correct English:
      * `ci: SHA-pin every GitHub Action`, `fix(llm-vo): WCAG contrast …`,
-     * `build(railway): Chromium-capable Dockerfile …`. Narrowing the case list
+     * `build(deploy): Chromium-capable Dockerfile …`. Narrowing the case list
      * does not help — measured against those subjects, every subset down to
      * `['sentence-case']` alone still rejects all of them, because any
      * capital-initial subject reads as sentence-case. Level is the only dial

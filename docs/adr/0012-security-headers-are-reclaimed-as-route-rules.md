@@ -48,7 +48,7 @@ This is the same shape as ADR-0009's `aria-hidden="false"` finding: the count wa
 
 ### The mechanism already exists and is already in use
 
-Both repos already declare `routeRules` in `nuxt.config.ts` — for redirects only. Nitro applies `routeRules[path].headers` on the Node preset Railway runs, and on the Vercel and Netlify presets too. Nothing needs installing and no new concept is introduced into either repo.
+Both repos already declare `routeRules` in `nuxt.config.ts` — for redirects only. Nitro applies `routeRules[path].headers` on the Node preset that host runs, and on the Vercel and Netlify presets too. Nothing needs installing and no new concept is introduced into either repo.
 
 ## Considered Options
 
