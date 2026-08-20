@@ -8,7 +8,7 @@ This is the second backlog item to be reframed rather than confirmed by measurin
 
 Each repo's `vue-a11y` overrides were removed from `eslint.config.mjs`, leaving `vue: { a11y: true }` in place, and `pnpm exec eslint . --format json` was run. Configs were restored via `git checkout --` and both repos verified byte-clean afterwards.
 
-| | `uxlab` (application) | `nuxt-kickstart` (template) |
+| | the application repo | the template |
 |---|---|---|
 | Files linted | 801 | 500 |
 | Under its own config | 0 `vue-a11y`; 60 errors from unrelated rules | **0 `vue-a11y`, 0 errors, 0 warnings** |
@@ -37,7 +37,7 @@ if (hasAriaHidden && hasFocusableElement(node)) { context.report({ node, message
 
 ### The template already solved the next-largest rule
 
-`vue-a11y/label-has-for` is the largest rule in both repos under stock defaults. The template does not disable it — `nuxt-kickstart/eslint.config.mjs:94-97` tunes it, with the reason written down:
+`vue-a11y/label-has-for` is the largest rule in both repos under stock defaults. The template does not disable it — its `eslint.config.mjs` tunes it, with the reason written down:
 
 ```js
 // default (both) rejects valid patterns with wrapped form controls.
@@ -46,14 +46,14 @@ if (hasAriaHidden && hasFocusableElement(node)) { context.report({ node, message
 
 | Repo | Stock default | Under the template's tuning |
 |---|---|---|
-| `nuxt-kickstart` | 21 | **0** |
-| `uxlab` | 96 | **46** |
+| the template | 21 | **0** |
+| the application repo | 96 | **46** |
 
 The tuning eliminates the template's hits entirely and halves the application repo's. Those 50 were the false positive the template had already diagnosed; the surviving 46 are real.
 
 ### Most of the remainder is one repo's showcase
 
-Applying the template's full ruleset to the application repo leaves 177 hits, of which **127 fall in `app/pages/cwds/` and `app/pages/examples/`** — a 26-file component showcase the template has no equivalent of. 50 are in product code.
+Applying the template's full ruleset to the application repo leaves 177 hits, of which **127 fall in a 26-file component showcase** the template has no equivalent of. 50 are in product code.
 
 **Each repo's override set is exactly the set of rules its own content trips.** The template carries three overrides because three rules fire in it; the application repo carries thirteen because thirteen fire. Neither repo has suppressed a rule it did not need to. The 13-vs-3 gap is a consequence of one repo containing a component gallery, and it is not evidence of disagreement about accessibility policy.
 
@@ -68,7 +68,7 @@ Applying the template's full ruleset to the application repo leaves 177 hits, of
 
 **The item is rescoped, not closed.** What Preflight can ship is a three-rule preset:
 
-| Rule | `uxlab` | `nuxt-kickstart` | Basis |
+| Rule | the application repo | the template | Basis |
 |---|---|---|---|
 | `no-autofocus` | `'off'` | `'off'` | agreed in both |
 | `media-has-caption` | `'off'` | `'off'` | agreed in both |
@@ -78,13 +78,13 @@ That is a smaller deliverable than rank 1 implied, and a better-founded one. The
 
 **This is [ADR-0007](./0007-commitlint-presets-are-consumed-via-extends.md)'s shape again.** SPEC §10.2 found the stock commitlint config "wrong about this project," and the deliverable became a tuned ruleset rather than a guardrail. The same thing happened here twice over — a rule that fires on `aria-hidden="false"`, and a rule whose default rejects valid wrapped form controls. Two of the last three backlog items measured have turned out to be **stock defaults being wrong about this codebase**, which is a pattern worth carrying into the remaining items rather than a coincidence.
 
-**Five genuine defects were found, and are not Preflight's to fix.** `aria-hidden="true"` on focusable elements in `uxlab`, in `app/pages/cwds/50-50-media-callout.vue`, `app/pages/cwds/utility-nav.vue`, and `app/pages/cwds/video-player.vue`. They should be filed there. Finding them is incidental evidence that the three-rule preset is worth having: the suppression hiding them was blanket, and a narrower one would have surfaced them years earlier.
+**Five hits survived in the application repo and are not Preflight's to fix.** They are filed there. The original wording of this paragraph called all five "genuine defects", which overstates what the rule reports: **one** is a natively focusable anchor carrying `aria-hidden="true"`, and the other four are `tabindex="-1"` dialog wrappers flagged *transitively*, because the rule recurses into descendants and finds focusable children. Those four are a video library's own hidden-modal idiom, and whether they are defects depends on whether the children are inerted when the dialog is hidden — which static markup does not say. Finding them is still incidental evidence that the three-rule preset is worth having: the suppression hiding them was blanket, and a narrower one would have surfaced them years earlier.
 
 **It narrows a caution [ADR-0005](./0005-shipped-template-content-is-provisional.md) raised.** That ADR noted `axe-linter.yml` sits among the agreed files, so shipping it is in scope, while shipping a *chosen* rule set "edges toward adjudicating the deferred dispute." The dispute is now sized: one rule, `label-has-for`, on which the template holds the better-documented position. The edge ADR-0005 was wary of is narrower than it looked, though the caution itself was correct to raise — that ADR is left as written.
 
 **A caution about the untunable rule.** `no-aria-hidden-on-focusable` cannot be narrowed, so any future decision to enforce it repo-wide requires changing 87 call sites that are not wrong. If that rule is ever wanted, the cheaper path is upstream — the fix is a one-line value check in the plugin.
 
-**What would change the answer.** The template growing content that trips the other ten rules, which would turn silence into a position and give those rules something to agree or disagree about. Failing that, a second application-shaped consumer would test whether the thirteen describe `uxlab` or describe applications generally — the current sample cannot distinguish those.
+**What would change the answer.** The template growing content that trips the other ten rules, which would turn silence into a position and give those rules something to agree or disagree about. Failing that, a second application-shaped consumer would test whether the thirteen describe the application repo or describe applications generally — the current sample cannot distinguish those.
 
 **A method note, since this ADR is the third instance.** SPEC §247 already warns that the v2 ordering "was reasoned, not measured," citing item 3. Item 1 has now moved too — not reversed like item 3, and not merely rescoped like item 2, but *reinterpreted*: the same 233 violations support "thirteen live suppressions" or "three shareable rules plus a rule bug" depending on whether the hits are resolved to their attribute values. Counting was not enough here; the count had to be read one hit at a time. The remaining backlog items were ordered by the same unmeasured method.
 
@@ -92,13 +92,13 @@ That is a smaller deliverable than rank 1 implied, and a better-founded one. The
 
 *What would change the answer* above names two triggers. One of them has fired.
 
-**A second application-shaped consumer exists.** `ams-cloud-eds` adopted Preflight at `1.0.0` and spreads this preset into its `vue` overrides. It is the first repo Preflight was not extracted from, and unlike `uxlab` it does not descend from `nuxt-kickstart`, so it is the first opportunity to distinguish "describes `uxlab`" from "describes applications generally."
+**A second application-shaped consumer exists.** The independent adopter took Preflight at `1.0.0` and spreads this preset into its `vue` overrides. It is the first repo Preflight was not extracted from, and unlike the application repo it does not descend from the template, so it is the first opportunity to distinguish "describes the application repo" from "describes applications generally."
 
-**That opportunity is unexercised, deliberately.** Answering it means stripping the overrides, running eslint and resolving each hit to the attribute that caused it — the method this ADR's own conclusion turned on, where 87 of 233 hits were a rule firing on `aria-hidden="false"` and counting alone would have missed it. That has not been done against `ams-cloud-eds`. The trigger is recorded as available so the question stays askable; nothing here answers it, and no count is claimed.
+**That opportunity is unexercised, deliberately.** Answering it means stripping the overrides, running eslint and resolving each hit to the attribute that caused it — the method this ADR's own conclusion turned on, where 87 of 233 hits were a rule firing on `aria-hidden="false"` and counting alone would have missed it. That has not been done against the independent adopter. The trigger is recorded as available so the question stays askable; nothing here answers it, and no count is claimed.
 
 What adoption did produce is one measurement about the one rule this ADR tuned.
 
-**The tuned rule is not silent in a component-library repo, and the residue is not the documented false positive.** `ams-cloud-eds` had `label-has-for` turned off entirely, with a comment blaming for/id sibling association — the same reasoning this ADR measured and rejected. Under the shipped `required: { some: ['nesting', 'id'] }`, exactly **one** violation survived: a `<label>` wrapping a Nuxt UI `<USelect>`.
+**The tuned rule is not silent in a component-library repo, and the residue is not the documented false positive.** The independent adopter had `label-has-for` turned off entirely, with a comment blaming for/id sibling association — the same reasoning this ADR measured and rejected. Under the shipped `required: { some: ['nesting', 'id'] }`, exactly **one** violation survived: a `<label>` wrapping a Nuxt UI `<USelect>`.
 
 **It is a third option this preset leaves at its default, not a limitation of the rule.** Read from `eslint-plugin-vuejs-accessibility@2.6.0` rather than inferred:
 
@@ -117,4 +117,4 @@ So the rule exposes three options that bear on this — `components`, `controlCo
 
 **How it was resolved in the adopting repo**, which is a consumer's decision and not this package's: an explicit `for`/`id` pair, after confirming `USelect` binds `:id` to its trigger element, so the fix associates the label at runtime rather than only satisfying eslint.
 
-**What would change the answer here.** A second repo hitting the same residue — that would make it a property of component-library repos rather than of `ams-cloud-eds`, and would be the first evidence that `controlComponents` belongs in the preset. Failing that, the honest position is that the shipped tuning is right for the repos it was measured against and incomplete for repos it was not.
+**What would change the answer here.** A second repo hitting the same residue — that would make it a property of component-library repos rather than of one repo, and would be the first evidence that `controlComponents` belongs in the preset. Failing that, the honest position is that the shipped tuning is right for the repos it was measured against and incomplete for repos it was not.

@@ -11,8 +11,8 @@ Action references across the three repos, counted from `.github/workflows/`:
 | Repo | References | SHA-pinned | Floating |
 |---|---|---|---|
 | `preflight-pkg` | 6 | 6 | 0 |
-| `uxlab` (application) | 19 | 11 | 8 |
-| `nuxt-kickstart` (template) | 7 | 0 | 7 |
+| the application repo | 19 | 11 | 8 |
+| the template | 7 | 0 | 7 |
 
 SPEC §8 recorded that "the application repo SHA-pins its CI actions … the template still uses the floating tag." That is true and incomplete. The application repo pins *some* of them, and three actions appear **both ways inside it**:
 
@@ -26,7 +26,7 @@ So this is not one repo ahead of another. It is a migration that stopped halfway
 
 The same skew shows in a single action across all three repos: `pnpm/action-setup` is `@v4` (floating) in the template, SHA-pinned at `v6.0.8` in the application, and at `v6.0.10` here.
 
-**And the files could not be shared even if the pinning agreed.** `uxlab`'s `test.yml` carries a 52-line `e2e` job — Playwright browser install, a Drizzle migration against a local SQLite file, artifact upload — that the template has no use for. That is SPEC §8's *legitimate divergence*, the fourth of its five drift phenomena, and it is permanent rather than pending.
+**And the files could not be shared even if the pinning agreed.** The application repo's `test.yml` carries a 52-line `e2e` job — Playwright browser install, a Drizzle migration against a local SQLite file, artifact upload — that the template has no use for. That is SPEC §8's *legitimate divergence*, the fourth of its five drift phenomena, and it is permanent rather than pending.
 
 ## Considered Options
 

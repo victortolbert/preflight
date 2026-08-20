@@ -48,7 +48,7 @@ Under semver, `^0.2.0` means `>=0.2.0 <0.3.0` — minors do not flow in 0.x, so 
 
 **While 0.x, breaking goes in the minor slot** (`0.4.0`); major after 1.0.0. This makes both consumers' existing caret ranges safe as they stand — `^0.3.0` is `>=0.3.0 <0.4.0`, so a breaking preset change cannot reach them, patch releases included. No consumer-side change is required by this ADR.
 
-**1.0.0 ships when SPEC §11's "migration for partially-adopted repos" resolves.** That is the one open item that plausibly wants CLI surface — a `preflight adopt`, or flags on `sync` — and Q4's hold was reasoned on surface instability specifically. §11's other open item, whether the source template survives, is a question about `nuxt-kickstart`'s fate rather than this package's interface, and gating on it would let an unrelated decision hold this one hostage.
+**1.0.0 ships when SPEC §11's "migration for partially-adopted repos" resolves.** That is the one open item that plausibly wants CLI surface — a `preflight adopt`, or flags on `sync` — and Q4's hold was reasoned on surface instability specifically. §11's other open item, whether the source template survives, is a question about the source template's fate rather than this package's interface, and gating on it would let an unrelated decision hold this one hostage.
 
 ## Considered Options
 

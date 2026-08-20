@@ -12,7 +12,7 @@ Nothing ships. This is the eighth and last of §10's original items to be measur
 
 Installed rather than declared, since declared ranges overlap and say nothing about what runs:
 
-| | `uxlab` | `nuxt-kickstart` |
+| | the application repo | the template |
 |---|---|---|
 | `typescript` | 6.0.3 | **6.0.3 — identical** |
 | `vitest` | 4.1.10 | 4.1.8 |
