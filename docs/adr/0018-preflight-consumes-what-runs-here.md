@@ -34,7 +34,7 @@ Adopting it would therefore mean creating `.vscode/extensions.json` first, which
 
 ## The oversight, which is the useful part
 
-`.nvmrc` is the one managed file whose reader is verifiably present here — CI reads it on every run of both workflows. It is not managed, and the cost of that is already visible:
+`.nvmrc` is the one managed file whose reader is verifiably present here — CI reads it on every run of both workflows. It was not managed when this ADR was written, and the cost of that was already visible:
 
 ```
 this repo's .nvmrc:      24
@@ -43,7 +43,7 @@ templates/.nvmrc:        v24
 
 **They differ, and [ADR-0005's addendum](./0005-shipped-template-content-is-provisional.md) is the ADR about that exact byte.** It records that the template originally said `24`, that the real consuming files say `v24`, that `24` had been *inferred from a CI workflow rather than read from the file*, and that shipping it would have turned Preflight's most confident template into a diff on first contact. The template was corrected. This repo's own copy was not, and nothing noticed, because nothing here checks.
 
-Both values are valid and nothing is broken. That is what makes it the right example: it is drift, in the package whose entire purpose is catching drift, surviving unseen because the package does not run its own check on itself.
+Both values were valid and nothing was broken. That is what makes it the right example: it was drift, in the package whose entire purpose is catching drift, surviving unseen because the package did not run its own check on itself. It is fixed in this ADR's own change — see Consequences.
 
 ## Considered Options
 
@@ -58,7 +58,7 @@ The asymmetry is recorded rather than implied, so "Preflight does not use its ow
 
 **`.nvmrc` is now managed, and `ci.yml` gains a `Check for config drift` step.** This is the first place `preflight check` runs against a real repository rather than a test fixture. The step runs last and invokes `node dist/cli.mjs` rather than the `bin` name, because resolving the bin would need the package installed into itself — the same constraint the two consumed presets work around.
 
-The stronger argument for it is the forcing function rather than the check: change a template, and CI fails *here* until the change is re-synced, so the cost an adopter pays is felt on the same push instead of being discovered in a third repo six days later.
+The stronger argument for it is the forcing function rather than the check: change `templates/.nvmrc`, and CI fails *here* until the change is re-synced, so the cost an adopter pays is felt on the same push instead of being discovered in a third repo six days later. **Its reach is that one file.** The other two managed files are declared `unmanaged` above, and `check` short-circuits them before any comparison, so their templates can change without failing anything here.
 
 **The drift is fixed.** `preflight sync` rewrote `.nvmrc` from `24` to `v24` and wrote a one-entry `preflight-lock.json`. Verified before and after: `check` exited 1 on `not adopted .nvmrc`, and exits 0 reporting `in sync` with the two opt-outs listed as `unmanaged`.
 
