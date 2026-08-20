@@ -28,14 +28,7 @@ No other §10 item has agreed this cleanly. There is no dispute to defer.
 
 Neither repo deploys to either host any more. Netlify has seven surviving sites and neither is one of them; Vercel has two projects across both scopes (`vticonsulting`, `vtolberts-projects`) and neither is one of them. Both files are **dead config** by the definition in `CONTEXT.md`: present, byte-identical, and invoked by nothing.
 
-The application repo is live on Railway, which reads neither file. Its `railway.json` has no headers section. A request to production returned:
-
-```
-content-type, date, etag, last-modified, server: railway-hikari,
-x-railway-request-id, content-length, x-hikari-trace, x-railway-edge, vary
-```
-
-No `X-Frame-Options`, no `X-Content-Type-Options`, no `Referrer-Policy`, no HSTS, no CSP. The template repo deploys nowhere at all, so for it the gap is theoretical; for the application repo it is live.
+The application repo is live on a host that reads neither file, and its host config has no headers section. A request to production returned only the usual entity and caching headers plus that host's own request-id and trace headers — and **none of the five**. No `X-Frame-Options`, no `X-Content-Type-Options`, no `Referrer-Policy`, no HSTS, no CSP. The template repo deploys nowhere at all, so for it the gap is theoretical; for the application repo it is live.
 
 ### Four of the five rules are unenforced, and the fifth is redundant
 
@@ -49,7 +42,7 @@ Resolving each rule against what production actually returns:
 | `/_nuxt/*` immutable | ✓ | present — **from Nitro, not this file** |
 | `/img/*` immutable | ✓ | **absent** |
 
-The split was verified directly rather than inferred. `/_nuxt/Df5VZcCo.js` returns `public, max-age=31536000, immutable` from a host that never reads `netlify.toml`, so Nitro sets it. `/img/2006-holidays.png` returns `200` with **no `Cache-Control` at all**, so Nitro does not extend that to `public/`.
+The split was verified directly rather than inferred. A hashed bundle under `/_nuxt/` returns `public, max-age=31536000, immutable` from a host that never reads `netlify.toml`, so Nitro sets it. An image under `/img/` returns `200` with **no `Cache-Control` at all**, so Nitro does not extend that to `public/`.
 
 This is the same shape as ADR-0009's `aria-hidden="false"` finding: the count was not enough, and each rule had to be resolved against what it actually does. Five agreed rules read as one deliverable until each was checked, at which point they became three to ship, one to drop as redundant, and one to drop as a hazard.
 
@@ -79,7 +72,7 @@ An options object per [ADR-0004](./0004-presets-are-composable-options-objects.m
 
 ## Consequences
 
-**`/**`, not `/*`, and this is the one place the port is not mechanical.** Netlify's glob makes `for = "/*"` match every path at any depth. Nitro's matcher does not: there `/*` is a single segment. A literal translation would have covered `/about`, missed `/podcasts/admin/settings`, and **failed open and silently** — every page still renders, and only the nested ones lose the header. Pinned in both `security-headers.test.ts` and the version-contract assertions in `stability.test.ts`, because narrowing that key would break coverage without failing anything else.
+**`/**`, not `/*`, and this is the one place the port is not mechanical.** Netlify's glob makes `for = "/*"` match every path at any depth. Nitro's matcher does not: there `/*` is a single segment. A literal translation would have covered `/about`, missed any route nested two levels deeper, and **failed open and silently** — every page still renders, and only the nested ones lose the header. Pinned in both `security-headers.test.ts` and the version-contract assertions in `stability.test.ts`, because narrowing that key would break coverage without failing anything else.
 
 **The subpath is content-named, which SPEC §3 did not anticipate.** §3 says subpaths are tool-named and framework-silent. Here the tool — Nitro — is the delivery vehicle rather than the policy: the policy is three HTTP response headers, a web-platform thing that outlives any particular server. Naming it `/nitro` would also claim the whole of Nitro's config surface for one key inside `routeRules`. §3's actual prohibition is namespacing under a *framework*, and `/security-headers` does not do that. Worth flagging rather than burying: §3 asserts "every v1 file is framework-independent," and this preset is the first that is not — it is useless to a project not running Nitro. That is a real narrowing of the package's claimed audience, and the plain-JavaScript second consumer §3 imagines would find one of four subpaths inapplicable.
 

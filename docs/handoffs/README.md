@@ -3,7 +3,7 @@
 Point-in-time handoff notes so a fresh agent (or a different machine) can pick up
 where a session left off. Committed on purpose — git is the cross-machine channel.
 
-Same convention as `uxlab/docs/handoffs`, so a handoff reads the same way in
+Same convention as the application repo's `docs/handoffs`, so a handoff reads the same way in
 either repo.
 
 - **Naming:** `YYYY-MM-DD-<branch-or-topic>.md` (e.g. `2026-08-06-preflight-v2-measurement.md`).

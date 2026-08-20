@@ -8,7 +8,7 @@ The test is not being weakened. What was missing is a duty on Preflight's side, 
 
 [`CONTEXT.md`](../../CONTEXT.md) defines dead config as "a configuration file whose tool is not installed, or is installed but invoked by nothing." Checked across all three consuming repos rather than inferred:
 
-| | `nuxt-kickstart` | `uxlab` | `ams-cloud-eds` |
+| | the template | the application repo | the independent adopter |
 |---|---|---|---|
 | `axe-linter.yml` present | yes | yes | yes (synced) |
 | tool in `package.json` | no | no | no |
@@ -19,7 +19,7 @@ The test is not being weakened. What was missing is a duty on Preflight's side, 
 
 **A recommendation is not an installation.** `deque-systems.vscode-axe-linter` in `.vscode/extensions.json` prompts a developer; whether they accepted is per-person and leaves no trace in the repo. The extraction pair both carry the recommendation, which is why the file never looked dead there — but "looked" is doing the work. Under the definition as written, `axe-linter.yml` is dead in the two repos it was extracted from, not merely in the third.
 
-**The third repo is what surfaced it.** `ams-cloud-eds` had no `.vscode/extensions.json` at all, so `preflight sync` wrote a configuration file nothing in that repo could read — ADR-0003's exact case, manufactured by Preflight. It was resolved there by adding the recommendation, with a comment naming the dependency by hand:
+**The third repo is what surfaced it.** The independent adopter had no `.vscode/extensions.json` at all, so `preflight sync` wrote a configuration file nothing in that repo could read — ADR-0003's exact case, manufactured by Preflight. It was resolved there by adding the recommendation, with a comment naming the dependency by hand:
 
 ```jsonc
 // Reads axe-linter.yml, which Preflight manages. Without this extension
@@ -36,7 +36,7 @@ Stating the rule broadly rather than narrowly is deliberate. Narrowly — "`axe-
 
 **Applying the rule immediately found a second instance, which is the argument for stating it broadly.** The claim drafted here first was that `.nvmrc` and `.editorconfig` do not have this shape and the class has one member. Checking rather than asserting:
 
-- **`.nvmrc` is live and verifiably so.** `actions/setup-node` reads it via `node-version-file: .nvmrc` in `nuxt-kickstart`, `ams-cloud-eds`, and this repo's own `ci.yml` and `release.yml`. Its reader is in the repo, in CI, on every run.
+- **`.nvmrc` is live and verifiably so.** `actions/setup-node` reads it via `node-version-file: .nvmrc` in the template, the independent adopter, and this repo's own `ci.yml` and `release.yml`. Its reader is in the repo, in CI, on every run.
 - **`.editorconfig` is not.** No repo has an `editorconfig` dependency, VS Code has no built-in EditorConfig support — it requires the `EditorConfig.EditorConfig` extension — and **no repo's `.vscode/extensions.json` recommends it.** That is strictly weaker than `axe-linter.yml`, which at least has its recommendation in two of three repos.
 
 So the class has two members, and the second is the file [ADR-0014](./0014-the-editor-config-is-derived-from-eslint.md) shipped as this package's first breaking release. One mitigation is real and belongs on the record: ADR-0014 derived every `.editorconfig` key from an eslint rule both repos already enforce, so the *policy* is live even where the *file* is unread. `axe-linter.yml` has no such backstop — nothing enforces `empty-heading` if the extension is absent.

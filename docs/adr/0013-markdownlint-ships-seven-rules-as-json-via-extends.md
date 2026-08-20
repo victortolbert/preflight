@@ -8,7 +8,7 @@ This is the sixth backlog item measured. It is the second to be *reframed* rathe
 
 ### The configs, as they stand
 
-| | `uxlab` (application) | `nuxt-kickstart` (template) |
+| | the application repo | the template |
 |---|---|---|
 | Rules disabled | 9 | 21 |
 | Of those, actually fire | **9 of 9** | **12 of 21** — 9 are stale |
@@ -34,12 +34,12 @@ Running `--fix` on copies and re-measuring:
 
 | | stock | after `--fix` | auto-fixable |
 |---|---|---|---|
-| `uxlab` | 6,727 | 6,519 | 208 (3%) |
-| `nuxt-kickstart` | 1,317 | 971 | **346 (26%)** |
+| the application repo | 6,727 | 6,519 | 208 (3%) |
+| the template | 1,317 | 971 | **346 (26%)** |
 
 Seven rules survive in both:
 
-| Rule | `uxlab` | `nk` | |
+| Rule | application | template | |
 |---|---|---|---|
 | `MD013` | 5,474 | 839 | line length |
 | `MD060` | 279 | 62 | table column alignment |
@@ -59,7 +59,7 @@ Seven rules survive in both:
 
 It was the one candidate for tuning rather than disabling — it takes `line_length`, `tables` and `code_blocks` options, and disabling the largest rule outright deserves resistance. Measured across both repos:
 
-| Setting | `uxlab` | `nk` |
+| Setting | application | template |
 |---|---|---|
 | default (80) | 5,474 | 838 |
 | `tables: false, code_blocks: false` | 4,618 | 433 |
@@ -124,9 +124,9 @@ This is [ADR-0007](./0007-commitlint-presets-are-consumed-via-extends.md)'s shap
 
 Two of the conditions above have since been met, and meeting them exposed a gap in the criterion this ADR set.
 
-**The template ran the tool and triaged its content**, which is the first thing listed under *What would change the answer*. `nuxt-kickstart` adopted the preset at `0.4.0` ([#15](https://github.com/victortolbert/nuxt-kickstart/pull/15), `a603be1`) and went from 281 standing hits to **0** — the 5 predicted here remained after `--fix` and were closed by hand. So its config is now a position rather than inheritance. What that does *not* yet buy is the genuine comparison this ADR wanted from it: `uxlab` is no longer a validation consumer (see [`CONTEXT.md`](../../CONTEXT.md)), so there is still no second repo to compare against.
+**The template ran the tool and triaged its content**, which is the first thing listed under *What would change the answer*. The template adopted the preset at `0.4.0` and went from 281 standing hits to **0** — the 5 predicted here remained after `--fix` and were closed by hand. So its config is now a position rather than inheritance. What that does *not* yet buy is the genuine comparison this ADR wanted from it: the application repo is no longer a validation consumer (see [`CONTEXT.md`](../../CONTEXT.md)), so there is still no second repo to compare against.
 
-**Adoption did not make the tool run, exactly as predicted — including in the repo that just adopted it.** `nuxt-kickstart` now has `lint:md` and `lint:md:fix` and no CI step calling either, which is the same state this ADR recorded for the application repo. The prediction was right and it is worth noting that being right about it changed nothing.
+**Adoption did not make the tool run, exactly as predicted — including in the repo that just adopted it.** The template now has `lint:md` and `lint:md:fix` and no CI step calling either, which is the same state this ADR recorded for the application repo. The prediction was right and it is worth noting that being right about it changed nothing.
 
 **Preflight now consumes the preset itself**, which it did not when this ADR was written. `.markdownlint.json` extends `./presets/markdownlint.json` by relative path — the reason `commitlint.config.ts` gives, that the subpath form would need the package installed into itself — and a `Lint Markdown` CI step makes it live rather than another installed-and-uninvoked tool. This repo is 26 authored files of exactly the documentation-heavy kind the preset is for, and none of them were in the sample the seven rules were chosen from.
 
