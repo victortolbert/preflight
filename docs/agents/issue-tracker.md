@@ -4,17 +4,13 @@ Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all op
 
 ## ⚠ This repo is public — sanitize before writing
 
-Every issue, comment, and label on `victortolbert/preflight` is world-readable. Preflight is deliberately **upstream** of the projects that use it: real-world use happens in private consuming repos, and findings travel back here **as sanitized public issues**, never as verbatim internal detail.
+Every issue, comment, and label on `victortolbert/preflight` is world-readable, and so is every PR body, PR title, commit message, and published tarball.
 
-Before creating or commenting on an issue, strip:
+**The rule lives in [`publishing.md`](./publishing.md)** — read it before writing here. It is not specific to the tracker, and an earlier version of it that was cost this repo real exposure on the surfaces it did not name ([ADR-0019](../adr/0019-this-repo-represents-its-author-not-an-employer.md)).
 
-- names of private repositories, and any internal project, client, or employer identifiers
-- selectors, URLs, endpoints, credentials, or file paths from private codebases
-- specific findings about a private repo's shortcomings (disabled lint rules, defects, drift)
+The short form: name **roles**, not repositories. No client or employer identifiers, no internal paths, hostnames, SHAs or links into private repos, no third-party personal data, and no findings about a private repo's shortcomings. "A consuming project needed a way to opt one file out of management" is publishable; naming the project and the file is not.
 
-Write the *generalized* form instead. "A consuming project needed a way to opt one file out of management" is publishable; naming the project and the file is not.
-
-If a finding cannot be stated without internal detail, it belongs in the private planning repo, not here.
+If a finding cannot be stated without internal detail, it belongs in the repo it came from, not here.
 
 ## Conventions
 
