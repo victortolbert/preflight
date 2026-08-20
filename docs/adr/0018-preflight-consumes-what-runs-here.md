@@ -1,6 +1,6 @@
-# Preflight consumes what runs here, which is two presets and none of its managed files
+# Preflight consumes what runs here, which is two presets and one of three managed files
 
-[ADR-0017](./0017-a-managed-file-must-name-what-reads-it.md) says a managed file ships only if Preflight can name what reads it. The repo that says so consumes none of its own managed files. This ADR records why, because the answer is a principle rather than an oversight, and because the one place it *is* an oversight is worth having written down.
+[ADR-0017](./0017-a-managed-file-must-name-what-reads-it.md) says a managed file ships only if Preflight can name what reads it. Until this ADR, the repo that says so consumed *none* of its own managed files. This records why most of that absence is a principle rather than an oversight — and closes the one part of it that was an oversight, which had already cost something.
 
 **The rule is ADR-0003's death test, applied inward.** Preflight adopts what actually runs here, and nothing else. That is the same bar it holds every candidate file to, so the limit is not pragmatism — dogfooding for completeness would break the principle it is meant to demonstrate.
 
@@ -13,10 +13,12 @@
 | `taze` preset | no | no `taze.config.ts`, no script invoking it |
 | `vue-a11y` preset | no | no eslint here at all — no config file, no eslint dependency |
 | `security-headers` preset | no | a Nuxt `routeRules` fragment; this is not a Nuxt app |
-| `.nvmrc` | **present, live, unmanaged** | `ci.yml:34` and `release.yml:37` read it via `node-version-file`; no lock entry, never synced |
-| `.editorconfig` | no | absent |
-| `axe-linter.yml` | no | absent |
-| `preflight-lock.json` | no | this repo has never run `preflight sync` on itself |
+| `.nvmrc` | **yes, now managed** | `ci.yml:34` and `release.yml:37` read it via `node-version-file`; synced and locked by this ADR |
+| `.editorconfig` | no — **declared unmanaged** | nothing here reads it; see below |
+| `axe-linter.yml` | no — **declared unmanaged** | nothing here to lint; see below |
+| `preflight-lock.json` | **yes** | written by this ADR's sync; one entry |
+
+The two declines are **declared in `preflight.config.ts` rather than merely absent**, which is what SPEC §6's escape hatch is for and the difference between a reviewable decision and drift nobody looked at. It also means this repo now demonstrates the opt-out mechanism as well as the check.
 
 Both presets are consumed **by relative path, not by subpath**, because the subpath form would need the package installed into itself — the reason `commitlint.config.ts` carries in a comment, recorded in [ADR-0013's addendum](./0013-markdownlint-ships-seven-rules-as-json-via-extends.md).
 
@@ -48,14 +50,16 @@ Both values are valid and nothing is broken. That is what makes it the right exa
 - **Adopt everything, for symmetry.** Rejected — it installs dead config, which is the failure this package exists to detect.
 - **Adopt nothing and say so.** The status quo. It is defensible for the presets and the two absent managed files, and it is not defensible for `.nvmrc`, which is live here.
 - **Adopt `.editorconfig` as the visible gesture.** Rejected as written: with no eslint and no editor recommendation here, it would be the worst-supported managed file in the project.
-- **Manage `.nvmrc`: run `preflight sync` here, commit `preflight-lock.json`, add a `preflight check` step to `ci.yml`** — identified as the candidate worth taking, and not taken in this ADR.
+- **Manage `.nvmrc`: run `preflight sync` here, commit `preflight-lock.json`, add a `preflight check` step to `ci.yml`** — **chosen.**
 
 ## Consequences
 
 The asymmetry is recorded rather than implied, so "Preflight does not use its own output" reads as a measured position instead of an embarrassment nobody addressed.
 
-**What the unclaimed option would buy, since it should not be lost.** Managing `.nvmrc` here would make this the first repo where `preflight check` runs against Preflight's own files on every push, exercising the CLI on a real repository rather than only on test fixtures. The stronger argument is the forcing function: change a template, and CI fails *here* until it is re-synced, so the cost an adopter pays is felt immediately rather than discovered in a third repo six days later. The `24`/`v24` drift is what that check would have caught.
+**`.nvmrc` is now managed, and `ci.yml` gains a `Check for config drift` step.** This is the first place `preflight check` runs against a real repository rather than a test fixture. The step runs last and invokes `node dist/cli.mjs` rather than the `bin` name, because resolving the bin would need the package installed into itself — the same constraint the two consumed presets work around.
 
-It is not done here because adding a gate to this repo's CI is a change to how this repo is built, which is a separate decision from recording why the rest is absent.
+The stronger argument for it is the forcing function rather than the check: change a template, and CI fails *here* until the change is re-synced, so the cost an adopter pays is felt on the same push instead of being discovered in a third repo six days later.
+
+**The drift is fixed.** `preflight sync` rewrote `.nvmrc` from `24` to `v24` and wrote a one-entry `preflight-lock.json`. Verified before and after: `check` exited 1 on `not adopted .nvmrc`, and exits 0 reporting `in sync` with the two opt-outs listed as `unmanaged`.
 
 **What would change the answer.** This package growing content that gives a currently-inert preset something to act on — HTML fixtures for `axe-linter.yml`, or eslint arriving for `vue-a11y` — would move that row from "wrong to adopt" to "should adopt," on the same test that excludes it today.
