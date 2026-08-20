@@ -73,13 +73,34 @@ See [`SPEC.md`](./SPEC.md) for the full specification, the rejected alternatives
 
 ## What is actually in it
 
-| File | Mechanism | What it carries |
-|---|---|---|
-| `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` |
-| `.nvmrc` | CLI-written | `v24` |
-| `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` |
-| `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice |
-| `.editorconfig` | CLI-written | indent, final newline, trailing whitespace — derived from eslint |
+| File | Mechanism | What it carries | What reads it |
+|---|---|---|---|
+| `taze.config.ts` | preset | `exclude: ['@fortawesome/*']` | `taze`, a devDependency, via your own update script |
+| `.nvmrc` | CLI-written | `v24` | `actions/setup-node`, via `node-version-file` |
+| `axe-linter.yml` | CLI-written | `rules: { empty-heading: false }` | **an editor extension — see below** |
+| `commitlint.config.ts` | preset, **opt-in** | conventional commits, tuned to measured practice | `commitlint`, via the `commit-msg` hook |
+| `.editorconfig` | CLI-written | indent, final newline, trailing whitespace — derived from eslint | **an editor extension — see below** |
+
+**The last column is a rule, not a courtesy: a managed file ships only if Preflight can name what reads it.** Two of these are read by an editor extension whose presence a repo cannot confirm, and Preflight does not check for either — so this is where you find out, before adopting rather than after.
+
+- **`axe-linter.yml` needs `deque-systems.vscode-axe-linter`.** axe Linter also ships a GitHub Action and a CI Connector that read the same file, but neither is used in any repo here, so in practice the extension is its only reader. Nothing else enforces the rules it carries.
+- **`.editorconfig` needs `EditorConfig.EditorConfig`**, since VS Code has no built-in support. This one has a backstop: its keys are derived from eslint rules you are already enforcing, so the policy holds one lint run later even where the file is unread.
+
+So recommend both where you adopt, and the precondition becomes visible to everyone who opens the repo:
+
+```jsonc
+// .vscode/extensions.json
+{
+  "recommendations": [
+    "deque-systems.vscode-axe-linter", // reads axe-linter.yml
+    "EditorConfig.EditorConfig"        // reads .editorconfig
+  ]
+}
+```
+
+**Preflight does not write that file itself, and cannot.** A managed file owns its whole contents, so writing `.vscode/extensions.json` would clobber whatever else a repo recommends — the same reason [ADR-0014](./docs/adr/0014-the-editor-config-is-derived-from-eslint.md) found `.vscode/settings.json` unshippable despite the repos agreeing on 99.6% of it. VS Code's JSON has no composition point to ship a preset into either, which is the fork [SPEC §4](./SPEC.md) draws between the two mechanisms. That leaves documenting it, which is what this section is.
+
+See [ADR-0017](./docs/adr/0017-a-managed-file-must-name-what-reads-it.md) for why both ship anyway rather than being cut.
 
 Every one of these was extracted from the consuming projects rather than chosen. For the v1 set that extraction was literal: `.nvmrc` and `axe-linter.yml` are byte-identical to what those projects already have, so `preflight sync` run against either writes nothing and reports "Managed files are up to date" — the no-op adoption above, demonstrated rather than argued.
 
