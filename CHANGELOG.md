@@ -6,6 +6,14 @@ That is [ADR-0010](./docs/adr/0010-the-version-contract.md)'s definition of brea
 
 Every entry says what the upgrade does to a repo that already depends on Preflight. The reasoning behind each decision is in the linked ADR.
 
+## 1.0.1 — 2026-08-20
+
+**Upgrading from `1.0.0`: safe, and nothing you can observe changed.** No behaviour, no types, no preset values, no CLI surface. This release exists to replace the tarball itself.
+
+- The published `1.0.0` tarball carried two identifiers in source comments compiled into `dist/` — a private project slug, and the name of a host a consuming repo deploys to. Neither affected a single line of behaviour, and neither belonged on a public registry. `1.0.1` is the same package with those comments corrected. ([ADR-0019](./docs/adr/0019-this-repo-represents-its-author-not-an-employer.md))
+
+There is no user-facing reason to take this upgrade, and no reason to avoid it. It is recorded because every published version has an entry, and a silent republish would be the one kind of change this file exists to make visible.
+
 ## 1.0.0 — 2026-08-17
 
 **Upgrading from `0.4.x`: safe, but read this — your caret now behaves differently.**
