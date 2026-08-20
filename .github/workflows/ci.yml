@@ -119,3 +119,18 @@ jobs:
 
       - name: Test
         run: pnpm run test
+
+      # Preflight run against Preflight. Last, because it needs `dist/cli.mjs`
+      # from the Build step above, and invoked by path rather than by the `bin`
+      # name for the reason `commitlint.config.ts`, `.markdownlint.json` and
+      # `preflight.config.ts` all give: resolving the bin would need this package
+      # installed into itself.
+      #
+      # This is the only place the CLI runs against a real repository rather than
+      # a test fixture, and it is a forcing function as much as a check: change a
+      # template and this job fails until the change is re-synced here, so the
+      # cost an adopter pays is felt in this repo on the same push. It was added
+      # after `.nvmrc` here drifted to `24` against a shipped template of `v24`
+      # and nothing noticed, because nothing checked. See ADR-0018.
+      - name: Check for config drift
+        run: node dist/cli.mjs check
