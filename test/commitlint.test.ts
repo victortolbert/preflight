@@ -80,7 +80,7 @@ describe('@victortolbert/preflight/commitlint', () => {
   it.each([
     'ci: SHA-pin every GitHub Action, and converge versions (#47)',
     'fix(llm-vo): WCAG contrast and accessibility pass across optimizer UI',
-    'build(railway): Chromium-capable Dockerfile + railway.json for container deploy',
+    'build(deploy): Chromium-capable Dockerfile + container config for deploy',
   ])('warns without failing on acronym-initial subjects — %s', async (message) => {
     // The rule cannot distinguish an acronym from Sentence Case, and no subset
     // of its case list admits these. Warning is the only setting that keeps the

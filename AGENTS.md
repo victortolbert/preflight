@@ -4,7 +4,7 @@
 
 ### Publishing
 
-**This repo is publicly representative of its author, not of any employer or client.** It governs every world-readable surface — docs, issues, PR bodies and titles, commit messages, and anything shipped in the tarball. Read it before writing on any of them. See `docs/agents/publishing.md`, and [ADR-0019](./docs/adr/0019-this-repo-represents-its-author-not-an-employer.md) for why.
+**This repo is publicly representative of its author, not of any employer or client.** `docs/agents/publishing.md` states the rule and governs every world-readable surface — docs, issues, PR bodies and titles, commit messages, and anything shipped in the tarball. Read it before writing on any of them. See `docs/agents/publishing.md`, and [ADR-0019](./docs/adr/0019-this-repo-represents-its-author-not-an-employer.md) for why.
 
 ### Issue tracker
 

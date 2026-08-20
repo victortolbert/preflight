@@ -6,15 +6,14 @@ The rule this ADR states is one sentence: **the public surface is representative
 
 ## The measurement
 
-An inventory of every mention of the private consuming repos across all 76 tracked files, bucketed by what the mention discloses:
+An inventory of every mention of the private consuming repos across all **82** tracked files. `git grep -oiE` over the four names counts **102 occurrences in 15 files**; classifying each by what it discloses — a judgement, unlike the total:
 
-| Bucket | Count |
+| Bucket | Roughly |
 |---|---|
-| Bare name only | **0** |
+| Bare name only | **none** |
 | Neutral factual state | 30 |
 | **Shortcoming, defect, or drift** | **32** |
-| **Internal implementation detail** | **41** |
-| Total | 103 |
+| **Internal implementation detail** | **40** |
 
 **There is no benign tail.** Every mention sits inside a measurement, which is what this project's method produces and why the count is not a lapse in discipline — it is discipline pointed at the wrong surface.
 
@@ -32,7 +31,7 @@ The single rule was working as written and protecting the least material. That i
 
 ## Two findings that set the shape
 
-**Role labels were already in use, and were already defeated.** This repo refers to "the template" and "the application repo" **114 times**. Six table header rows bound those roles to names — and one binding de-anonymizes every role reference a reader encounters afterwards, in that file and every other. The generalized form was in place and leaking through six cells.
+**Role labels were already in use, and were already defeated.** This repo referred to "the template" and "the application repo" **154 times**, counted across every tracked `.md` and `.ts` at the commit this ADR was written against. Six table header rows bound those roles to names — and one binding de-anonymizes every role reference a reader encounters afterwards, in that file and every other. The generalized form was in place and leaking through six cells.
 
 **Nothing load-bearing needed a name.** Checked against the inventory rather than assumed: what carries the arguments here is the *relationship* between repos — that two share ancestry so their agreement is inheritance, that a third does not so its agreement is finally evidence. Roles express all of that. A count attached to a role argues exactly as well as a count attached to a name.
 

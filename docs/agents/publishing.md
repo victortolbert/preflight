@@ -25,7 +25,7 @@ Assume the reader is hostile, patient, and has more context than you think.
 - **Commit SHAs, PR numbers, or links into private repos.** A link is an identifier even when it 404s for the reader.
 - **Live deployment detail** for anything not public: response headers, asset paths, admin routes, hosting topology.
 - **Third-party personal data.** Colleagues' names, handles, roles, or employment status. This one is not yours to publish even where the rest is.
-- **Findings about a private repo's shortcomings** — disabled rules, defect counts, drift, security gaps. See *Fix the fact, not the sentence* below.
+- **Findings about a private repo's shortcomings, tied to a name** — disabled rules, defect counts, drift, security gaps. Stated against a *role* these are the ordinary output of this project's method and are allowed; see *Keeping a claim checkable*. Attached to an identity they are a disclosure. And a **live** gap is not a writing problem at all — see *Fix the fact, not the sentence*.
 
 ## What is fine
 
@@ -39,7 +39,9 @@ These are personal accounts, domains, and a sole proprietorship. They are in-bou
 
 Almost nothing that carries an argument here needs a repository's *name*. What carries it is the **relationship between repos** — that two share ancestry, that a third does not. Role labels express all of it:
 
-**the template** · **the application** · **the independent adopter** · **the extraction pair**
+**the template** · **the application repo** · **the independent adopter** · **the surveyed candidate**
+
+Two collective terms are also defined, and are the two most used: **the consuming repos** for all of them, and **the extraction pair** for the two Preflight was extracted from. *The consumer* — singular, unqualified — is not a role and should name which.
 
 Counts, versions, and measurements attach to roles perfectly well: "6,727 violations in the application repo" argues exactly as well as the named form.
 
