@@ -67,7 +67,7 @@ describe('@victortolbert/preflight/commitlint', () => {
   })
 
   it.each([
-    'cwds: a one-day-burst typo type',
+    'proj: a one-day-burst typo type',
     'i: a bare typo',
     'deps: superseded by `build` and `chore`',
   ])('still rejects off-enum types — %s', async (message) => {
