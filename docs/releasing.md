@@ -53,7 +53,7 @@ The package page on npmjs.com should also show the green **Provenance** panel, n
 
 - **Publish without matching versions.** A tag whose version disagrees with `package.json` stops the run. `bumpp` cannot produce that state; a hand-pushed tag can, and npm never reissues a version number.
 - **Publish a broken artifact.** `publint` and `@arethetypeswrong/cli` run before `npm publish`, not after.
-- **Publish with an npm too old for OIDC.** Trusted publishing needs npm ≥ 11.5.1. `.nvmrc` says `24`, which resolves to the newest 24.x and satisfies that today — but 24.0.0 through 24.4.1 shipped npm 11.3.0 or 11.4.2, so pinning `.nvmrc` to a patch could reintroduce it. The workflow fails with that explanation rather than installing a newer npm, which would put an unpinned package in the one job holding publish rights.
+- **Publish with an npm too old for OIDC.** Trusted publishing needs npm ≥ 11.5.1. `.nvmrc` says `v24`, which resolves to the newest 24.x and satisfies that today — but 24.0.0 through 24.4.1 shipped npm 11.3.0 or 11.4.2, so pinning `.nvmrc` to a patch could reintroduce it. The workflow fails with that explanation rather than installing a newer npm, which would put an unpinned package in the one job holding publish rights.
 
 ## GitHub Releases are created by hand, deliberately
 

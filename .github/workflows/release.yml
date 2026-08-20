@@ -47,7 +47,7 @@ jobs:
           # cache infrastructure.
 
       - name: Require an npm new enough for trusted publishing
-        # Trusted publishing needs npm >= 11.5.1. `.nvmrc` says `24`, which
+        # Trusted publishing needs npm >= 11.5.1. `.nvmrc` says `v24`, which
         # resolves to the newest 24.x and so satisfies this today — but 24.0.0
         # through 24.4.1 shipped npm 11.3.0/11.4.2, so pinning `.nvmrc` to a
         # patch would quietly reintroduce the problem.
