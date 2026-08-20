@@ -1,7 +1,9 @@
 # Preflight v1 — Specification
 
-> **Status:** Decision-complete. Ready for an implementation session.
-> **Scope:** what to build and why. It does not prescribe code structure, and does not authorize work beyond v1.
+> **Status:** **Shipped.** v1 released as `1.0.0` on 2026-08-17; the §10 backlog and §11's open items are closed. This is no longer a plan — it is kept as the **scope boundary** and the **evidence base**, and §8 and §9 are the parts still doing work.
+> **Scope:** what was built and why. It does not prescribe code structure, and does not authorize work beyond v1.
+>
+> Read §10 and §11 as a record of decisions taken, not of work outstanding. Struck text is deliberate: this document keeps its wrong turns, because several of its conclusions were reversed by measurement and the reversals are the useful part.
 
 This specification is the output of a structured planning effort: an audit of the shared configuration surface across several private Nuxt projects, followed by six decisions taken one at a time. The detailed decision record is kept privately; the reasoning that matters is reproduced here.
 
